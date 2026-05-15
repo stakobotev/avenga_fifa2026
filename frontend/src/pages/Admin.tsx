@@ -1,0 +1,414 @@
+import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { Calendar, Trophy, RotateCcw, Clock, Check, AlertCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
+import { matchApi, adminApi, type SyncStatus } from '../services/api';
+import type { Match } from '../types';
+import clsx from 'clsx';
+
+export default function Admin() {
+  const { user } = useAuthStore();
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all' | 'scheduled' | 'finished'>('all');
+  const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [syncing, setSyncing] = useState(false);
+
+  // Redirect non-admin users
+  if (!user || user.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
+
+  useEffect(() => {
+    fetchMatches();
+    fetchSyncStatus();
+  }, []);
+
+  const fetchMatches = async () => {
+    try {
+      const data = await matchApi.getAll();
+      setMatches(data);
+    } catch (error) {
+      console.error('Failed to fetch matches:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSyncStatus = async () => {
+    try {
+      const status = await adminApi.getSyncStatus();
+      setSyncStatus(status);
+    } catch (error) {
+      console.error('Failed to fetch sync status:', error);
+    }
+  };
+
+  const handleTriggerSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await adminApi.triggerSync();
+      showMessage('success', result.message);
+      await fetchSyncStatus();
+      if (result.updated > 0) {
+        await fetchMatches();
+      }
+    } catch (error) {
+      showMessage('error', 'Failed to trigger sync');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const showMessage = (type: 'success' | 'error', text: string) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  const handleSetMatchDate = async (matchId: number, hoursFromNow: number) => {
+    setActionLoading(matchId);
+    try {
+      const newDate = new Date(Date.now() + hoursFromNow * 60 * 60 * 1000);
+      await adminApi.updateMatchDate(matchId, newDate.toISOString().slice(0, 19));
+      await fetchMatches();
+      showMessage('success', `Match date updated to ${hoursFromNow > 0 ? `${hoursFromNow}h from now` : `${Math.abs(hoursFromNow)}h ago`}`);
+    } catch (error) {
+      showMessage('error', 'Failed to update match date');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSetResult = async (matchId: number, homeScore: number, awayScore: number) => {
+    setActionLoading(matchId);
+    try {
+      await adminApi.updateMatchResult(matchId, { homeScore, awayScore });
+      await fetchMatches();
+      showMessage('success', `Result set: ${homeScore} - ${awayScore}`);
+    } catch (error) {
+      showMessage('error', 'Failed to set result');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleResetMatch = async (matchId: number) => {
+    setActionLoading(matchId);
+    try {
+      await adminApi.resetMatch(matchId);
+      await fetchMatches();
+      showMessage('success', 'Match reset successfully');
+    } catch (error) {
+      showMessage('error', 'Failed to reset match');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const filteredMatches = matches.filter(match => {
+    if (filter === 'scheduled') return match.status === 'SCHEDULED';
+    if (filter === 'finished') return match.status === 'FINISHED';
+    return true;
+  });
+
+  if (loading) {
+    return (
+      <div className="animate-pulse space-y-6">
+        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
+        <div className="flex items-center space-x-2">
+          {(['all', 'scheduled', 'finished'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={clsx(
+                'px-4 py-2 rounded-lg font-medium transition-all capitalize',
+                filter === f
+                  ? 'bg-avenga-red text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              )}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {message && (
+        <div className={clsx(
+          'p-4 rounded-lg flex items-center',
+          message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        )}>
+          {message.type === 'success' ? <Check className="h-5 w-5 mr-2" /> : <AlertCircle className="h-5 w-5 mr-2" />}
+          {message.text}
+        </div>
+      )}
+
+      {/* Auto-Sync Status Panel */}
+      <div className={clsx(
+        'card border-l-4',
+        syncStatus?.enabled ? 'border-l-green-500' : 'border-l-gray-400'
+      )}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            {syncStatus?.enabled ? (
+              <Wifi className="h-6 w-6 text-green-500 mr-3" />
+            ) : (
+              <WifiOff className="h-6 w-6 text-gray-400 mr-3" />
+            )}
+            <div>
+              <h3 className="font-bold text-gray-900">Football-Data.org Auto-Sync</h3>
+              <p className="text-sm text-gray-500">
+                {syncStatus?.enabled
+                  ? 'Automatic match result updates are enabled'
+                  : 'Auto-sync is disabled. Configure FOOTBALL_DATA_API_KEY to enable.'}
+              </p>
+            </div>
+          </div>
+
+          {syncStatus?.enabled && (
+            <button
+              onClick={handleTriggerSync}
+              disabled={syncing}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center"
+            >
+              <RefreshCw className={clsx('h-4 w-4 mr-2', syncing && 'animate-spin')} />
+              {syncing ? 'Syncing...' : 'Sync Now'}
+            </button>
+          )}
+        </div>
+
+        {syncStatus?.enabled && syncStatus.lastSyncResult && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Last Sync:</span>
+                <p className="font-medium">
+                  {syncStatus.lastSyncAttempt
+                    ? new Date(syncStatus.lastSyncAttempt).toLocaleString()
+                    : 'Never'}
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-500">Processed:</span>
+                <p className="font-medium">{syncStatus.lastSyncResult.processed} matches</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Updated:</span>
+                <p className="font-medium text-green-600">{syncStatus.lastSyncResult.updated} matches</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Errors:</span>
+                <p className={clsx(
+                  'font-medium',
+                  syncStatus.lastSyncResult.errors > 0 ? 'text-red-600' : 'text-gray-600'
+                )}>
+                  {syncStatus.lastSyncResult.errors}
+                </p>
+              </div>
+            </div>
+            {syncStatus.lastSyncResult.message && (
+              <p className="mt-2 text-sm text-gray-600">{syncStatus.lastSyncResult.message}</p>
+            )}
+          </div>
+        )}
+
+        {!syncStatus?.enabled && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              To enable automatic match result updates:
+            </p>
+            <ol className="text-sm text-gray-600 list-decimal list-inside mt-2 space-y-1">
+              <li>Get a free API key from <a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">football-data.org</a></li>
+              <li>Set the environment variable: <code className="bg-gray-100 px-1 rounded">FOOTBALL_DATA_API_KEY=your_key</code></li>
+              <li>Set <code className="bg-gray-100 px-1 rounded">FOOTBALL_DATA_ENABLED=true</code></li>
+              <li>Restart the backend server</li>
+            </ol>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h3 className="font-medium text-yellow-800 mb-2">Testing Instructions</h3>
+        <ol className="text-sm text-yellow-700 space-y-1 list-decimal list-inside">
+          <li>Set a match date to the past (e.g., -2h ago) to lock predictions for that match</li>
+          <li>Enter a result to trigger scoring - predictions will be calculated automatically</li>
+          <li>Check the leaderboard to see updated points</li>
+          <li>Use "Reset" to clear a match result and re-test</li>
+        </ol>
+      </div>
+
+      <div className="space-y-4">
+        {filteredMatches.map(match => (
+          <MatchAdminCard
+            key={match.id}
+            match={match}
+            loading={actionLoading === match.id}
+            onSetDate={(hours) => handleSetMatchDate(match.id, hours)}
+            onSetResult={(home, away) => handleSetResult(match.id, home, away)}
+            onReset={() => handleResetMatch(match.id)}
+          />
+        ))}
+      </div>
+
+      {filteredMatches.length === 0 && (
+        <div className="text-center py-12 text-gray-500">
+          No matches found
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface MatchAdminCardProps {
+  match: Match;
+  loading: boolean;
+  onSetDate: (hoursFromNow: number) => void;
+  onSetResult: (homeScore: number, awayScore: number) => void;
+  onReset: () => void;
+}
+
+function MatchAdminCard({ match, loading, onSetDate, onSetResult, onReset }: MatchAdminCardProps) {
+  const [homeScore, setHomeScore] = useState(match.homeScore?.toString() || '');
+  const [awayScore, setAwayScore] = useState(match.awayScore?.toString() || '');
+
+  const isFinished = match.status === 'FINISHED';
+  const isPast = new Date(match.matchDate) < new Date();
+  const teamsConfirmed = match.teamsConfirmed;
+
+  return (
+    <div className={clsx(
+      'card border-l-4',
+      isFinished ? 'border-l-green-500' : isPast ? 'border-l-yellow-500' : 'border-l-blue-500'
+    )}>
+      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+        {/* Match Info */}
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <span className={clsx(
+              'badge',
+              isFinished ? 'badge-success bg-green-100 text-green-800' : 'badge-info'
+            )}>
+              {match.status}
+            </span>
+            <span className="badge badge-secondary bg-gray-100 text-gray-700">
+              {match.stage} {match.groupLetter && `- Group ${match.groupLetter}`}
+            </span>
+            <span className="text-sm text-gray-500">#{match.matchNumber}</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className={clsx('font-bold text-lg', !match.homeTeam && 'text-gray-400')}>
+                {match.homeTeam?.code || match.homePlaceholder || 'TBD'}
+              </span>
+              {isFinished && <span className="text-xl font-bold">{match.homeScore}</span>}
+            </div>
+            <span className="text-gray-400">vs</span>
+            <div className="flex items-center gap-2">
+              {isFinished && <span className="text-xl font-bold">{match.awayScore}</span>}
+              <span className={clsx('font-bold text-lg', !match.awayTeam && 'text-gray-400')}>
+                {match.awayTeam?.code || match.awayPlaceholder || 'TBD'}
+              </span>
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-500 mt-1">
+            <Calendar className="h-4 w-4 inline mr-1" />
+            {new Date(match.matchDate).toLocaleString()}
+            {isPast && !isFinished && (
+              <span className="ml-2 text-yellow-600 font-medium">(locked - awaiting result)</span>
+            )}
+          </div>
+        </div>
+
+        {/* Date Controls */}
+        <div className="flex flex-col gap-2">
+          <span className="text-xs text-gray-500 font-medium">Set Match Date:</span>
+          <div className="flex gap-1">
+            {[
+              { label: '-2h', hours: -2 },
+              { label: '-1h', hours: -1 },
+              { label: '+1h', hours: 1 },
+              { label: '+24h', hours: 24 },
+            ].map(({ label, hours }) => (
+              <button
+                key={label}
+                onClick={() => onSetDate(hours)}
+                disabled={loading}
+                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+              >
+                <Clock className="h-3 w-3 inline mr-1" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Result Controls */}
+        <div className="flex flex-col gap-2">
+          <span className="text-xs text-gray-500 font-medium">Set Result:</span>
+          {teamsConfirmed ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                max="20"
+                value={homeScore}
+                onChange={(e) => setHomeScore(e.target.value)}
+                className="w-12 h-8 text-center border rounded text-sm"
+                placeholder="H"
+              />
+              <span className="text-gray-400">-</span>
+              <input
+                type="number"
+                min="0"
+                max="20"
+                value={awayScore}
+                onChange={(e) => setAwayScore(e.target.value)}
+                className="w-12 h-8 text-center border rounded text-sm"
+                placeholder="A"
+              />
+              <button
+                onClick={() => onSetResult(parseInt(homeScore) || 0, parseInt(awayScore) || 0)}
+                disabled={loading || !homeScore || !awayScore}
+                className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 flex items-center"
+              >
+                <Trophy className="h-3 w-3 mr-1" />
+                Set
+              </button>
+            </div>
+          ) : (
+            <span className="text-xs text-gray-400 italic">Teams not confirmed</span>
+          )}
+        </div>
+
+        {/* Reset */}
+        {isFinished && (
+          <button
+            onClick={onReset}
+            disabled={loading}
+            className="px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 disabled:opacity-50 flex items-center"
+          >
+            <RotateCcw className="h-4 w-4 mr-1" />
+            Reset
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

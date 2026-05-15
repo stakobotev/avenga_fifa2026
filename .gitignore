@@ -1,0 +1,37 @@
+# Backend
+backend/target/
+backend/.env
+backend/*.log
+
+# Certificates and sensitive files
+Cert/
+Cert.zip
+*.key
+*.crt
+sb/
+sb.zip
+
+# Claude local settings
+.claude/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files (keep .env.example)
+.env
+!.env.example

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIFA World Cup 2026 Prode - User Guide</title>
+    <style>
+        :root {
+            --primary: #6b21a8;
+            --primary-light: #9333ea;
+            --accent: #dc2626;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-700);
+            background: var(--gray-50);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+        }
+
+        section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        h3 {
+            color: var(--gray-900);
+            font-size: 1.25rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        .illustration {
+            background: var(--gray-100);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .illustration svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .tip {
+            background: #fef3c7;
+            border-left: 4px solid var(--warning);
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tip-title {
+            font-weight: 600;
+            color: var(--warning);
+            margin-bottom: 0.25rem;
+        }
+
+        .info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 0.25rem;
+        }
+
+        .points-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .points-table th,
+        .points-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .points-table th {
+            background: var(--gray-100);
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .points-table tr:hover {
+            background: var(--gray-50);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: #fef9c3;
+            color: var(--warning);
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .steps {
+            counter-reset: step;
+            list-style: none;
+            padding: 0;
+        }
+
+        .steps li {
+            position: relative;
+            padding-left: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .steps li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .toc {
+            background: var(--gray-100);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header {
+                padding: 2rem 1rem;
+            }
+
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <svg class="logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill="white" fill-opacity="0.2"/>
+            <circle cx="50" cy="50" r="35" fill="white" fill-opacity="0.3"/>
+            <path d="M50 20L55 35H70L58 45L63 60L50 50L37 60L42 45L30 35H45L50 20Z" fill="white"/>
+            <circle cx="50" cy="50" r="12" fill="#dc2626"/>
+        </svg>
+        <h1>FIFA World Cup 2026 Prode</h1>
+        <p>User Guide - Predict, Compete, Win!</p>
+    </header>
+
+    <div class="container">
+        <section class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#overview">1. Overview</a></li>
+                <li><a href="#dashboard">2. Dashboard</a></li>
+                <li><a href="#predictions">3. Making Match Predictions</a></li>
+                <li><a href="#bonus">4. Bonus Predictions</a></li>
+                <li><a href="#leaderboard">5. Leaderboard</a></li>
+                <li><a href="#scoring">6. Scoring System</a></li>
+            </ul>
+        </section>
+
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2>1. Overview</h2>
+            <p>
+                Welcome to the FIFA World Cup 2026 Prode! This is an internal prediction game where you can
+                compete with colleagues by predicting match results for the upcoming World Cup in USA, Mexico, and Canada.
+            </p>
+            <p>
+                The tournament features <strong>48 teams</strong> divided into <strong>12 groups</strong> of 4 teams each.
+                You'll be able to predict the score for every match and earn points based on your accuracy.
+            </p>
+
+            <div class="illustration">
+                <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Navigation bar illustration -->
+                    <rect x="0" y="0" width="600" height="50" fill="#6b21a8"/>
+                    <text x="20" y="32" fill="white" font-size="16" font-weight="bold">World Cup 2026</text>
+                    <text x="180" y="32" fill="white" font-size="12">Dashboard</text>
+                    <text x="270" y="32" fill="white" font-size="12">Matches</text>
+                    <text x="350" y="32" fill="white" font-size="12">Leaderboard</text>
+
+                    <!-- Cards illustration -->
+                    <rect x="20" y="70" width="170" height="110" rx="8" fill="white" stroke="#e5e7eb"/>
+                    <rect x="30" y="80" width="40" height="40" rx="8" fill="#fee2e2"/>
+                    <circle cx="50" cy="100" r="12" fill="#dc2626"/>
+                    <text x="80" y="95" fill="#6b7280" font-size="10">Your Rank</text>
+                    <text x="80" y="115" fill="#111827" font-size="20" font-weight="bold">#5</text>
+
+                    <rect x="215" y="70" width="170" height="110" rx="8" fill="white" stroke="#e5e7eb"/>
+                    <rect x="225" y="80" width="40" height="40" rx="8" fill="#dcfce7"/>
+                    <path d="M245 95 L240 105 L250 105 Z" fill="#16a34a"/>
+                    <text x="275" y="95" fill="#6b7280" font-size="10">Total Points</text>
+                    <text x="275" y="115" fill="#111827" font-size="20" font-weight="bold">142</text>
+
+                    <rect x="410" y="70" width="170" height="110" rx="8" fill="white" stroke="#e5e7eb"/>
+                    <rect x="420" y="80" width="40" height="40" rx="8" fill="#fef9c3"/>
+                    <circle cx="440" cy="100" r="10" fill="#ca8a04"/>
+                    <text x="470" y="95" fill="#6b7280" font-size="10">Exact Scores</text>
+                    <text x="470" y="115" fill="#111827" font-size="20" font-weight="bold">8</text>
+                </svg>
+            </div>
+
+            <div class="info">
+                <div class="info-title">Getting Started</div>
+                <p style="margin-bottom: 0;">After signing in, you'll land on the Dashboard where you can see your stats,
+                upcoming matches, and make predictions right away.</p>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard">
+            <h2>2. Dashboard</h2>
+            <p>
+                The Dashboard is your home base. It provides a quick overview of your performance and
+                the most important upcoming matches.
+            </p>
+
+            <h3>What You'll See</h3>
+            <ul>
+                <li><strong>Stats Cards:</strong> Your current rank, total points, exact score predictions, and total predictions made</li>
+                <li><strong>Upcoming Matches:</strong> The next 6 matches with countdown timers</li>
+                <li><strong>Bonus Predictions:</strong> Quick access to predict the World Cup Champion, Runner-up, Third Place, and Top Scorer</li>
+            </ul>
+
+            <div class="illustration">
+                <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Welcome banner -->
+                    <defs>
+                        <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#6b21a8"/>
+                            <stop offset="100%" style="stop-color:#9333ea"/>
+                        </linearGradient>
+                    </defs>
+                    <rect x="20" y="10" width="560" height="70" rx="12" fill="url(#purpleGrad)"/>
+                    <text x="40" y="45" fill="white" font-size="18" font-weight="bold">Welcome back, John!</text>
+                    <text x="40" y="65" fill="#c4b5fd" font-size="12">Make your predictions for the FIFA World Cup 2026</text>
+
+                    <!-- Stats cards row -->
+                    <rect x="20" y="95" width="130" height="70" rx="8" fill="white" stroke="#e5e7eb"/>
+                    <text x="35" y="120" fill="#6b7280" font-size="10">Your Rank</text>
+                    <text x="35" y="145" fill="#111827" font-size="22" font-weight="bold">#12</text>
+
+                    <rect x="165" y="95" width="130" height="70" rx="8" fill="white" stroke="#e5e7eb"/>
+                    <text x="180" y="120" fill="#6b7280" font-size="10">Total Points</text>
+                    <text x="180" y="145" fill="#111827" font-size="22" font-weight="bold">87</text>
+
+                    <rect x="310" y="95" width="130" height="70" rx="8" fill="white" stroke="#e5e7eb"/>
+                    <text x="325" y="120" fill="#6b7280" font-size="10">Exact Scores</text>
+                    <text x="325" y="145" fill="#111827" font-size="22" font-weight="bold">5</text>
+
+                    <rect x="455" y="95" width="125" height="70" rx="8" fill="white" stroke="#e5e7eb"/>
+                    <text x="470" y="120" fill="#6b7280" font-size="10">Predictions</text>
+                    <text x="470" y="145" fill="#111827" font-size="22" font-weight="bold">24</text>
+
+                    <!-- Upcoming matches section -->
+                    <text x="20" y="195" fill="#111827" font-size="14" font-weight="bold">Upcoming Matches</text>
+                    <text x="500" y="195" fill="#dc2626" font-size="12">View all →</text>
+
+                    <!-- Match cards -->
+                    <rect x="20" y="210" width="180" height="80" rx="8" fill="white" stroke="#e5e7eb"/>
+                    <rect x="30" y="220" width="60" height="20" rx="4" fill="#dbeafe"/>
+                    <text x="40" y="234" fill="#2563eb" font-size="9">Group A</text>
+                    <text x="50" y="260" fill="#111827" font-size="14" font-weight="bold">MEX</text>
+                    <text x="95" y="260" fill="#6b7280" font-size="12">vs</text>
+                    <text x="125" y="260" fill="#111827" font-size="14" font-weight="bold">USA</text>
+                    <text x="30" y="280" fill="#6b7280" font-size="9">Jun 19 - 20:00</text>
+
+                    <rect x="215" y="210" width="180" height="80" rx="8" fill="white" stroke="#e5e7eb"/>
+                    <rect x="225" y="220" width="60" height="20" rx="4" fill="#dbeafe"/>
+                    <text x="235" y="234" fill="#2563eb" font-size="9">Group B</text>
+                    <text x="245" y="260" fill="#111827" font-size="14" font-weight="bold">ARG</text>
+                    <text x="290" y="260" fill="#6b7280" font-size="12">vs</text>
+                    <text x="320" y="260" fill="#111827" font-size="14" font-weight="bold">PER</text>
+                    <text x="225" y="280" fill="#6b7280" font-size="9">Jun 20 - 17:00</text>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Making Predictions Section -->
+        <section id="predictions">
+            <h2>3. Making Match Predictions</h2>
+            <p>
+                Predicting match results is the core of the game. You can predict the final score for any
+                match before it starts.
+            </p>
+
+            <h3>How to Make a Prediction</h3>
+            <ol class="steps">
+                <li>
+                    <strong>Find the match</strong> - Go to the Dashboard or Matches page to find the match you want to predict.
+                </li>
+                <li>
+                    <strong>Enter your predicted score</strong> - Use the input fields to enter the home and away team scores.
+                </li>
+                <li>
+                    <strong>Click "Save Prediction"</strong> - Your prediction will be saved and locked when the match starts.
+                </li>
+            </ol>
+
+            <div class="illustration">
+                <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Match card -->
+                    <rect x="100" y="10" width="400" height="260" rx="12" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+
+                    <!-- Header -->
+                    <rect x="115" y="25" width="70" height="24" rx="4" fill="#dbeafe"/>
+                    <text x="125" y="42" fill="#2563eb" font-size="11">Group A</text>
+                    <circle cx="565" cy="37" r="8" fill="none" stroke="#dc2626" stroke-width="2"/>
+                    <line x1="562" y1="37" x2="568" y2="37" stroke="#dc2626" stroke-width="2"/>
+                    <line x1="565" y1="34" x2="565" y2="40" stroke="#dc2626" stroke-width="2"/>
+
+                    <!-- Teams -->
+                    <text x="170" y="100" fill="#111827" font-size="28" font-weight="bold" text-anchor="middle">MEX</text>
+                    <text x="170" y="125" fill="#6b7280" font-size="12" text-anchor="middle">Mexico</text>
+
+                    <text x="430" y="100" fill="#111827" font-size="28" font-weight="bold" text-anchor="middle">USA</text>
+                    <text x="430" y="125" fill="#6b7280" font-size="12" text-anchor="middle">United States</text>
+
+                    <!-- Score inputs -->
+                    <rect x="240" y="75" width="50" height="45" rx="8" fill="white" stroke="#d1d5db" stroke-width="2"/>
+                    <text x="265" y="105" fill="#111827" font-size="20" font-weight="bold" text-anchor="middle">2</text>
+
+                    <text x="300" y="105" fill="#6b7280" font-size="18" text-anchor="middle">:</text>
+
+                    <rect x="310" y="75" width="50" height="45" rx="8" fill="white" stroke="#d1d5db" stroke-width="2"/>
+                    <text x="335" y="105" fill="#111827" font-size="20" font-weight="bold" text-anchor="middle">1</text>
+
+                    <!-- Match info -->
+                    <text x="300" y="155" fill="#6b7280" font-size="11" text-anchor="middle">Jun 19, 2026 - 20:00</text>
+                    <text x="300" y="172" fill="#6b7280" font-size="11" text-anchor="middle">AT&T Stadium, Dallas</text>
+
+                    <!-- Countdown -->
+                    <rect x="200" y="185" width="200" height="40" rx="6" fill="#f9fafb"/>
+                    <text x="230" y="210" fill="#dc2626" font-size="16" font-weight="bold">5</text>
+                    <text x="230" y="222" fill="#6b7280" font-size="8" text-anchor="middle">days</text>
+                    <text x="275" y="210" fill="#dc2626" font-size="16" font-weight="bold">12</text>
+                    <text x="275" y="222" fill="#6b7280" font-size="8" text-anchor="middle">hours</text>
+                    <text x="320" y="210" fill="#dc2626" font-size="16" font-weight="bold">34</text>
+                    <text x="320" y="222" fill="#6b7280" font-size="8" text-anchor="middle">min</text>
+                    <text x="365" y="210" fill="#dc2626" font-size="16" font-weight="bold">56</text>
+                    <text x="365" y="222" fill="#6b7280" font-size="8" text-anchor="middle">sec</text>
+
+                    <!-- Save button -->
+                    <rect x="175" y="235" width="250" height="40" rx="8" fill="#dc2626"/>
+                    <text x="300" y="260" fill="white" font-size="14" font-weight="bold" text-anchor="middle">Save Prediction</text>
+                </svg>
+            </div>
+
+            <div class="tip">
+                <div class="tip-title">Important!</div>
+                <p style="margin-bottom: 0;">Predictions lock when the match kicks off. The countdown timer shows
+                exactly how much time you have left. Make sure to submit before it reaches zero!</p>
+            </div>
+
+            <h3>Knockout Stage Predictions</h3>
+            <p>
+                For knockout matches (Round of 32, Round of 16, Quarter-finals, Semi-finals, and Final),
+                you'll also need to predict <strong>which team advances</strong>. This is important in case
+                of a draw that goes to penalties.
+            </p>
+
+            <div class="illustration">
+                <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Knockout card snippet -->
+                    <rect x="100" y="10" width="400" height="160" rx="12" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+
+                    <rect x="115" y="25" width="90" height="24" rx="4" fill="#fef3c7"/>
+                    <text x="125" y="42" fill="#ca8a04" font-size="11">Quarter-final</text>
+
+                    <!-- Teams and scores -->
+                    <text x="180" y="75" fill="#111827" font-size="20" font-weight="bold" text-anchor="middle">BRA</text>
+                    <rect x="240" y="55" width="40" height="35" rx="6" fill="white" stroke="#d1d5db"/>
+                    <text x="260" y="78" fill="#111827" font-size="16" font-weight="bold" text-anchor="middle">1</text>
+                    <text x="300" y="78" fill="#6b7280" font-size="14" text-anchor="middle">:</text>
+                    <rect x="320" y="55" width="40" height="35" rx="6" fill="white" stroke="#d1d5db"/>
+                    <text x="340" y="78" fill="#111827" font-size="16" font-weight="bold" text-anchor="middle">1</text>
+                    <text x="420" y="75" fill="#111827" font-size="20" font-weight="bold" text-anchor="middle">ARG</text>
+
+                    <!-- Who advances section -->
+                    <text x="300" y="110" fill="#6b7280" font-size="11" text-anchor="middle">Who advances?</text>
+
+                    <rect x="200" y="120" width="80" height="35" rx="6" fill="white" stroke="#d1d5db" stroke-width="2"/>
+                    <text x="240" y="143" fill="#111827" font-size="14" text-anchor="middle">BRA</text>
+
+                    <rect x="320" y="120" width="80" height="35" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+                    <text x="360" y="143" fill="#dc2626" font-size="14" font-weight="bold" text-anchor="middle">ARG</text>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Bonus Predictions Section -->
+        <section id="bonus">
+            <h2>4. Bonus Predictions</h2>
+            <p>
+                In addition to match predictions, you can make bonus predictions for extra points.
+                These must be submitted <strong>before the tournament starts</strong>.
+            </p>
+
+            <h3>Available Bonus Predictions</h3>
+            <table class="points-table">
+                <thead>
+                    <tr>
+                        <th>Prediction</th>
+                        <th>Points</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-warning">Champion</span></td>
+                        <td><strong>+15 pts</strong></td>
+                        <td>Predict the World Cup winner</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-info">Runner-up</span></td>
+                        <td><strong>+10 pts</strong></td>
+                        <td>Predict the losing finalist</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-success">Third Place</span></td>
+                        <td><strong>+8 pts</strong></td>
+                        <td>Predict the third-place winner</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge" style="background:#e0e7ff;color:#4f46e5;">Top Scorer</span></td>
+                        <td><strong>+10 pts</strong></td>
+                        <td>Predict the tournament's top scorer</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="illustration">
+                <svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Bonus predictions card -->
+                    <rect x="50" y="10" width="500" height="200" rx="12" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+
+                    <text x="70" y="40" fill="#111827" font-size="16" font-weight="bold">Bonus Predictions</text>
+
+                    <!-- Champion row -->
+                    <circle cx="85" cy="75" r="12" fill="#fef9c3"/>
+                    <text x="85" y="80" fill="#ca8a04" font-size="14" text-anchor="middle">★</text>
+                    <text x="110" y="80" fill="#111827" font-size="13" font-weight="500">World Cup Champion</text>
+                    <rect x="480" y="65" width="50" height="22" rx="4" fill="#dbeafe"/>
+                    <text x="505" y="80" fill="#2563eb" font-size="10" text-anchor="middle">+15 pts</text>
+
+                    <!-- Team buttons for champion -->
+                    <rect x="70" y="90" width="45" height="28" rx="4" fill="#fef2f2" stroke="#dc2626"/>
+                    <text x="92" y="108" fill="#dc2626" font-size="11" font-weight="bold" text-anchor="middle">ARG</text>
+                    <rect x="120" y="90" width="45" height="28" rx="4" fill="white" stroke="#e5e7eb"/>
+                    <text x="142" y="108" fill="#6b7280" font-size="11" text-anchor="middle">BRA</text>
+                    <rect x="170" y="90" width="45" height="28" rx="4" fill="white" stroke="#e5e7eb"/>
+                    <text x="192" y="108" fill="#6b7280" font-size="11" text-anchor="middle">FRA</text>
+                    <rect x="220" y="90" width="45" height="28" rx="4" fill="white" stroke="#e5e7eb"/>
+                    <text x="242" y="108" fill="#6b7280" font-size="11" text-anchor="middle">ENG</text>
+                    <rect x="270" y="90" width="45" height="28" rx="4" fill="white" stroke="#e5e7eb"/>
+                    <text x="292" y="108" fill="#6b7280" font-size="11" text-anchor="middle">ESP</text>
+                    <text x="330" y="108" fill="#6b7280" font-size="11">...</text>
+
+                    <!-- Top Scorer row -->
+                    <circle cx="85" cy="155" r="12" fill="#dbeafe"/>
+                    <text x="85" y="160" fill="#2563eb" font-size="14" text-anchor="middle">⚽</text>
+                    <text x="110" y="160" fill="#111827" font-size="13" font-weight="500">Top Scorer</text>
+                    <rect x="480" y="145" width="50" height="22" rx="4" fill="#dbeafe"/>
+                    <text x="505" y="160" fill="#2563eb" font-size="10" text-anchor="middle">+10 pts</text>
+
+                    <!-- Text input for top scorer -->
+                    <rect x="70" y="170" width="200" height="30" rx="4" fill="white" stroke="#d1d5db"/>
+                    <text x="85" y="190" fill="#111827" font-size="12">Kylian Mbappé</text>
+                </svg>
+            </div>
+
+            <div class="tip">
+                <div class="tip-title">Deadline</div>
+                <p style="margin-bottom: 0;">Bonus predictions lock when the first match of the tournament kicks off.
+                Make sure to submit all your bonus predictions before June 11, 2026!</p>
+            </div>
+
+            <h3>How to Make Bonus Predictions</h3>
+            <ul>
+                <li><strong>Team predictions:</strong> Simply click on a team's code (e.g., ARG, BRA) to select them. Your selection saves automatically.</li>
+                <li><strong>Top Scorer:</strong> Type the player's name in the text field and click outside the box to save.</li>
+            </ul>
+        </section>
+
+        <!-- Leaderboard Section -->
+        <section id="leaderboard">
+            <h2>5. Leaderboard</h2>
+            <p>
+                The Leaderboard shows how you rank against other participants. It's updated in real-time
+                as match results come in and predictions are scored.
+            </p>
+
+            <div class="illustration">
+                <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Leaderboard card -->
+                    <rect x="50" y="10" width="500" height="260" rx="12" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+
+                    <text x="70" y="45" fill="#111827" font-size="18" font-weight="bold">Global Leaderboard</text>
+
+                    <!-- Header row -->
+                    <rect x="70" y="60" width="460" height="30" rx="4" fill="#f3f4f6"/>
+                    <text x="100" y="80" fill="#6b7280" font-size="11" font-weight="600">RANK</text>
+                    <text x="180" y="80" fill="#6b7280" font-size="11" font-weight="600">PLAYER</text>
+                    <text x="350" y="80" fill="#6b7280" font-size="11" font-weight="600">POINTS</text>
+                    <text x="440" y="80" fill="#6b7280" font-size="11" font-weight="600">EXACT</text>
+
+                    <!-- Row 1 - Gold -->
+                    <rect x="70" y="95" width="460" height="40" rx="0" fill="#fef9c3"/>
+                    <circle cx="100" cy="115" r="12" fill="#eab308"/>
+                    <text x="100" y="119" fill="white" font-size="11" font-weight="bold" text-anchor="middle">1</text>
+                    <text x="180" y="119" fill="#111827" font-size="13" font-weight="600">Maria Garcia</text>
+                    <text x="350" y="119" fill="#111827" font-size="14" font-weight="bold">248</text>
+                    <text x="440" y="119" fill="#6b7280" font-size="12">12</text>
+
+                    <!-- Row 2 - Silver -->
+                    <rect x="70" y="135" width="460" height="40" rx="0" fill="#f3f4f6"/>
+                    <circle cx="100" cy="155" r="12" fill="#9ca3af"/>
+                    <text x="100" y="159" fill="white" font-size="11" font-weight="bold" text-anchor="middle">2</text>
+                    <text x="180" y="159" fill="#111827" font-size="13" font-weight="600">John Smith</text>
+                    <text x="350" y="159" fill="#111827" font-size="14" font-weight="bold">231</text>
+                    <text x="440" y="159" fill="#6b7280" font-size="12">10</text>
+
+                    <!-- Row 3 - Bronze -->
+                    <rect x="70" y="175" width="460" height="40" rx="0" fill="#fed7aa"/>
+                    <circle cx="100" cy="195" r="12" fill="#ea580c"/>
+                    <text x="100" y="199" fill="white" font-size="11" font-weight="bold" text-anchor="middle">3</text>
+                    <text x="180" y="199" fill="#111827" font-size="13" font-weight="600">Carlos Ruiz</text>
+                    <text x="350" y="199" fill="#111827" font-size="14" font-weight="bold">215</text>
+                    <text x="440" y="199" fill="#6b7280" font-size="12">9</text>
+
+                    <!-- Row 4 - Current user (highlighted) -->
+                    <rect x="70" y="215" width="460" height="40" rx="0" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+                    <circle cx="100" cy="235" r="12" fill="#8b5cf6"/>
+                    <text x="100" y="239" fill="white" font-size="11" font-weight="bold" text-anchor="middle">12</text>
+                    <text x="180" y="239" fill="#111827" font-size="13" font-weight="600">You</text>
+                    <text x="350" y="239" fill="#111827" font-size="14" font-weight="bold">142</text>
+                    <text x="440" y="239" fill="#6b7280" font-size="12">5</text>
+                </svg>
+            </div>
+
+            <h3>Leaderboard Columns</h3>
+            <ul>
+                <li><strong>Rank:</strong> Your current position among all participants</li>
+                <li><strong>Player:</strong> Display name of the participant</li>
+                <li><strong>Points:</strong> Total points earned from all predictions</li>
+                <li><strong>Exact:</strong> Number of exact score predictions (worth 5 points each)</li>
+            </ul>
+
+            <div class="info">
+                <div class="info-title">Your Position</div>
+                <p style="margin-bottom: 0;">Your row is always highlighted in purple so you can quickly
+                find yourself on the leaderboard, even if you're not in the top positions.</p>
+            </div>
+        </section>
+
+        <!-- Scoring System Section -->
+        <section id="scoring">
+            <h2>6. Scoring System</h2>
+            <p>
+                Points are awarded based on the accuracy of your predictions. The more precise your
+                prediction, the more points you earn!
+            </p>
+
+            <h3>Match Prediction Points</h3>
+            <table class="points-table">
+                <thead>
+                    <tr>
+                        <th>Result</th>
+                        <th>Points</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-success">Exact Score</span></td>
+                        <td><strong>+5 points</strong></td>
+                        <td>You predicted 2-1, result is 2-1</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-warning">Correct Outcome</span></td>
+                        <td><strong>+2 points</strong></td>
+                        <td>You predicted 3-1, result is 2-0 (both home wins)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge" style="background:#fee2e2;color:#dc2626;">Wrong</span></td>
+                        <td><strong>0 points</strong></td>
+                        <td>You predicted 2-1, result is 0-0</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="illustration">
+                <svg viewBox="0 0 600 150" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Three example cards -->
+
+                    <!-- Exact score card -->
+                    <rect x="20" y="10" width="175" height="130" rx="8" fill="white" stroke="#16a34a" stroke-width="3"/>
+                    <rect x="20" y="10" width="175" height="4" rx="2" fill="#16a34a"/>
+                    <text x="107" y="45" fill="#111827" font-size="12" font-weight="bold" text-anchor="middle">MEX 2 - 1 USA</text>
+                    <text x="60" y="75" fill="#6b7280" font-size="10">Your prediction:</text>
+                    <text x="145" y="75" fill="#111827" font-size="11" font-weight="bold">2 - 1</text>
+                    <rect x="45" y="90" width="125" height="35" rx="6" fill="#dcfce7"/>
+                    <text x="107" y="113" fill="#16a34a" font-size="14" font-weight="bold" text-anchor="middle">+5 points</text>
+
+                    <!-- Correct outcome card -->
+                    <rect x="212" y="10" width="175" height="130" rx="8" fill="white" stroke="#ca8a04" stroke-width="3"/>
+                    <rect x="212" y="10" width="175" height="4" rx="2" fill="#ca8a04"/>
+                    <text x="300" y="45" fill="#111827" font-size="12" font-weight="bold" text-anchor="middle">BRA 3 - 0 ARG</text>
+                    <text x="252" y="75" fill="#6b7280" font-size="10">Your prediction:</text>
+                    <text x="337" y="75" fill="#111827" font-size="11" font-weight="bold">2 - 1</text>
+                    <rect x="237" y="90" width="125" height="35" rx="6" fill="#fef9c3"/>
+                    <text x="300" y="113" fill="#ca8a04" font-size="14" font-weight="bold" text-anchor="middle">+2 points</text>
+
+                    <!-- Wrong card -->
+                    <rect x="405" y="10" width="175" height="130" rx="8" fill="white" stroke="#dc2626" stroke-width="3"/>
+                    <rect x="405" y="10" width="175" height="4" rx="2" fill="#dc2626"/>
+                    <text x="492" y="45" fill="#111827" font-size="12" font-weight="bold" text-anchor="middle">FRA 1 - 1 GER</text>
+                    <text x="445" y="75" fill="#6b7280" font-size="10">Your prediction:</text>
+                    <text x="530" y="75" fill="#111827" font-size="11" font-weight="bold">2 - 0</text>
+                    <rect x="430" y="90" width="125" height="35" rx="6" fill="#fee2e2"/>
+                    <text x="492" y="113" fill="#dc2626" font-size="14" font-weight="bold" text-anchor="middle">0 points</text>
+                </svg>
+            </div>
+
+            <h3>What Counts as "Correct Outcome"?</h3>
+            <ul>
+                <li><strong>Home Win:</strong> You predicted the home team wins, and they did (regardless of exact score)</li>
+                <li><strong>Away Win:</strong> You predicted the away team wins, and they did</li>
+                <li><strong>Draw:</strong> You predicted a draw, and the match ended in a draw</li>
+            </ul>
+
+            <h3>Bonus Prediction Points</h3>
+            <table class="points-table">
+                <thead>
+                    <tr>
+                        <th>Prediction</th>
+                        <th>Points if Correct</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>World Cup Champion</td>
+                        <td><strong>+15 points</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Runner-up</td>
+                        <td><strong>+10 points</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Third Place</td>
+                        <td><strong>+8 points</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Top Scorer</td>
+                        <td><strong>+10 points</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="tip">
+                <div class="tip-title">Strategy Tip</div>
+                <p style="margin-bottom: 0;">Exact score predictions are worth more than double a correct outcome.
+                If you're confident about a match, try to predict the exact score rather than just playing it safe!</p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>FIFA World Cup 2026 Prode - Internal Prediction Game</p>
+        <p>Predict. Compete. Win!</p>
+    </footer>
+</body>
+</html>

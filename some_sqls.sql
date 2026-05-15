@@ -1,0 +1,2 @@
+SELECT id, away_penalty_score, away_score, city, group_letter, home_penalty_score, home_score, match_date, match_number, stage, status, venue, away_team_id, home_team_id, winner_team_id
+FROM public.matches;
