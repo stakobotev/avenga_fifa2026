@@ -47,10 +47,10 @@ export default function GroupStandings({ groupLetter }: GroupStandingsProps) {
         });
 
         matches
-          .filter(m => m.status === 'FINISHED' && m.homeScore !== null && m.awayScore !== null)
+          .filter(m => m.status === 'FINISHED' && m.homeScore !== null && m.awayScore !== null && m.homeTeam && m.awayTeam)
           .forEach((match: Match) => {
-            const home = standingsMap.get(match.homeTeam.id)!;
-            const away = standingsMap.get(match.awayTeam.id)!;
+            const home = standingsMap.get(match.homeTeam!.id)!;
+            const away = standingsMap.get(match.awayTeam!.id)!;
 
             home.played++;
             away.played++;

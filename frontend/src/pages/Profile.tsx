@@ -184,9 +184,9 @@ export default function Profile() {
                 }`}
               >
                 <div className="flex items-center space-x-4">
-                  <span className="font-medium">{pred.match.homeTeam.code}</span>
+                  <span className="font-medium">{pred.match.homeTeam?.code || 'TBD'}</span>
                   <span className="text-gray-400">vs</span>
-                  <span className="font-medium">{pred.match.awayTeam.code}</span>
+                  <span className="font-medium">{pred.match.awayTeam?.code || 'TBD'}</span>
                 </div>
                 <div className="flex items-center space-x-4">
                   <span className="text-sm text-gray-500">
