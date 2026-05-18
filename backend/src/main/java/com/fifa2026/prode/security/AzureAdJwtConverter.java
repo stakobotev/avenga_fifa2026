@@ -62,10 +62,8 @@ public class AzureAdJwtConverter implements Converter<Jwt, AbstractAuthenticatio
             user.setEmail(email);
             updated = true;
         }
-        if (name != null && !name.equals(user.getDisplayName())) {
-            user.setDisplayName(name);
-            updated = true;
-        }
+        // Note: Don't update displayName here - user may have customized it via profile page
+        // Display name is only set automatically on first login (user creation)
 
         // Set region from Azure AD if not already set
         if (user.getRegion() == null || user.getRegion() == User.Region.OTHER) {
