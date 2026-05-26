@@ -17,9 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -356,7 +354,7 @@ public class FootballDataApiService {
         private int updated = 0;
         private int errors = 0;
         private String message;
-        private LocalDateTime lastSync = LocalDateTime.now();
+        private Instant lastSync = Instant.now();
 
         public void incrementProcessed() { processed++; }
         public void incrementUpdated() { updated++; }

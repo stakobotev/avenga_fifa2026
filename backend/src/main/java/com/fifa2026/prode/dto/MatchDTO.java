@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -17,7 +17,7 @@ public class MatchDTO {
     private TeamDTO awayTeam;
     private String homePlaceholder;
     private String awayPlaceholder;
-    private LocalDateTime matchDate;
+    private Instant matchDate;
     private String venue;
     private String city;
     private String stage;

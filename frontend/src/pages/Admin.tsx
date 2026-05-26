@@ -71,7 +71,8 @@ export default function Admin() {
     setActionLoading(matchId);
     try {
       const newDate = new Date(Date.now() + hoursFromNow * 60 * 60 * 1000);
-      await adminApi.updateMatchDate(matchId, newDate.toISOString().slice(0, 19));
+      // Send full ISO string with Z suffix to indicate UTC
+      await adminApi.updateMatchDate(matchId, newDate.toISOString());
       await fetchMatches();
       showMessage('success', `Match date updated to ${hoursFromNow > 0 ? `${hoursFromNow}h from now` : `${Math.abs(hoursFromNow)}h ago`}`);
     } catch (error) {

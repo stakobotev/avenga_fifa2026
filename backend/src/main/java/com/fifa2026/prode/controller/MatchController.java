@@ -11,7 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 
@@ -78,7 +80,16 @@ public class MatchController {
     public ResponseEntity<MatchDTO> updateMatchDate(
             @PathVariable Long id,
             @RequestBody Map<String, String> request) {
-        LocalDateTime newDate = LocalDateTime.parse(request.get("matchDate"));
+        String dateStr = request.get("matchDate");
+        Instant newDate;
+        // Check for UTC indicator (Z) or timezone offset (+/-HH:MM after T)
+        if (dateStr.endsWith("Z") || dateStr.matches(".*T.*[+-]\\d{2}:\\d{2}$")) {
+            // Already has timezone info (ISO 8601 with Z or offset)
+            newDate = Instant.parse(dateStr);
+        } else {
+            // No timezone - treat as UTC
+            newDate = LocalDateTime.parse(dateStr).toInstant(ZoneOffset.UTC);
+        }
         return ResponseEntity.ok(matchService.updateMatchDate(id, newDate));
     }
 
@@ -110,6 +121,6 @@ public class MatchController {
     public static class SyncStatusResponse {
         private boolean enabled;
         private FootballDataApiService.SyncResult lastSyncResult;
-        private java.time.LocalDateTime lastSyncAttempt;
+        private Instant lastSyncAttempt;
     }
 }

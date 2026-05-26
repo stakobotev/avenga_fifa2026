@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -49,14 +51,15 @@ public class MatchService {
     }
 
     public List<MatchDTO> getUpcomingMatches() {
-        return matchRepository.findUpcomingMatches(LocalDateTime.now()).stream()
+        return matchRepository.findUpcomingMatches(Instant.now()).stream()
                 .map(MatchDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 
     public List<MatchDTO> getTodayMatches() {
-        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        // Get today's matches in UTC
+        Instant startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant endOfDay = startOfDay.plusSeconds(24 * 60 * 60);
         return matchRepository.findByMatchDateBetweenOrderByMatchDateAsc(startOfDay, endOfDay).stream()
                 .map(MatchDTO::fromEntity)
                 .collect(Collectors.toList());
@@ -112,7 +115,7 @@ public class MatchService {
     }
 
     @Transactional
-    public MatchDTO updateMatchDate(Long matchId, LocalDateTime newDate) {
+    public MatchDTO updateMatchDate(Long matchId, Instant newDate) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found"));
         match.setMatchDate(newDate);

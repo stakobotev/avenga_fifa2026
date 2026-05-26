@@ -2,7 +2,7 @@ package com.fifa2026.prode.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "matches")
@@ -30,7 +30,7 @@ public class Match {
     private String awayPlaceholder;
 
     @Column(nullable = false)
-    private LocalDateTime matchDate;
+    private Instant matchDate;
 
     private String venue;
 
@@ -73,7 +73,7 @@ public class Match {
     }
 
     public boolean isLocked() {
-        return LocalDateTime.now().isAfter(matchDate);
+        return Instant.now().isAfter(matchDate);
     }
 
     public enum Stage {

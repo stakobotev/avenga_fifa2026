@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
@@ -21,7 +21,7 @@ public class MatchSyncScheduler {
     private boolean enabled;
 
     private final AtomicReference<FootballDataApiService.SyncResult> lastSyncResult = new AtomicReference<>();
-    private final AtomicReference<LocalDateTime> lastSyncAttempt = new AtomicReference<>();
+    private final AtomicReference<Instant> lastSyncAttempt = new AtomicReference<>();
 
     /**
      * Sync match results every 5 minutes
@@ -33,8 +33,8 @@ public class MatchSyncScheduler {
             return;
         }
 
-        log.info("Starting scheduled match sync at {}", LocalDateTime.now());
-        lastSyncAttempt.set(LocalDateTime.now());
+        log.info("Starting scheduled match sync at {}", Instant.now());
+        lastSyncAttempt.set(Instant.now());
 
         try {
             FootballDataApiService.SyncResult result = footballDataApiService.syncMatchResults();
@@ -61,7 +61,7 @@ public class MatchSyncScheduler {
     /**
      * Get the last sync attempt time
      */
-    public LocalDateTime getLastSyncAttempt() {
+    public Instant getLastSyncAttempt() {
         return lastSyncAttempt.get();
     }
 
@@ -69,8 +69,8 @@ public class MatchSyncScheduler {
      * Manually trigger a sync (for admin use)
      */
     public FootballDataApiService.SyncResult triggerManualSync() {
-        log.info("Manual sync triggered at {}", LocalDateTime.now());
-        lastSyncAttempt.set(LocalDateTime.now());
+        log.info("Manual sync triggered at {}", Instant.now());
+        lastSyncAttempt.set(Instant.now());
 
         FootballDataApiService.SyncResult result = footballDataApiService.syncMatchResults();
         lastSyncResult.set(result);

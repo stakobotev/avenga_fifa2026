@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -110,7 +110,7 @@ public class PredictionService {
                 .findFirst()
                 .orElse(null);
 
-        if (firstMatch != null && LocalDateTime.now().isAfter(firstMatch.getMatchDate())) {
+        if (firstMatch != null && Instant.now().isAfter(firstMatch.getMatchDate())) {
             throw new RuntimeException("Bonus predictions are locked after tournament start");
         }
 

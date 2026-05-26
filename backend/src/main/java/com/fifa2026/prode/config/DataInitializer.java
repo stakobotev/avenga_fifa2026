@@ -12,7 +12,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +49,8 @@ public class DataInitializer implements CommandLineRunner {
                         .mapToInt(m -> m.getMatchNumber() != null ? m.getMatchNumber() : 0)
                         .max()
                         .orElse(48);
-                LocalDateTime startDate = LocalDateTime.of(2026, 6, 11, 20, 0);
+                // Match times in US Eastern Time (where most venues are)
+                ZonedDateTime startDate = ZonedDateTime.of(2026, 6, 11, 20, 0, 0, 0, ZoneId.of("America/New_York"));
                 initializeKnockoutMatches(teamsByCode, startDate, lastMatchNumber + 1);
             }
         }
@@ -128,8 +132,9 @@ public class DataInitializer implements CommandLineRunner {
                 .collect(Collectors.toMap(Team::getCode, t -> t));
 
         // Tournament starts June 11, 2026
-        // For testing: use LocalDateTime.now().minusDays(2) to simulate started tournament
-        LocalDateTime startDate = LocalDateTime.of(2026, 6, 11, 20, 0);
+        // Match times specified in US Eastern Time (where most venues are located)
+        // Stored as UTC Instant for consistent timezone handling
+        ZonedDateTime startDate = ZonedDateTime.of(2026, 6, 11, 20, 0, 0, 0, ZoneId.of("America/New_York"));
         int matchNumber = 1;
 
         // Group A matches
@@ -202,9 +207,9 @@ public class DataInitializer implements CommandLineRunner {
         initializeKnockoutMatches(teamsByCode, startDate, matchNumber);
     }
 
-    private void initializeKnockoutMatches(Map<String, Team> teams, LocalDateTime groupStageStart, int matchNumber) {
+    private void initializeKnockoutMatches(Map<String, Team> teams, ZonedDateTime groupStageStart, int matchNumber) {
         // Knockout stage starts after group stage (day 14)
-        LocalDateTime knockoutStart = groupStageStart.plusDays(14);
+        ZonedDateTime knockoutStart = groupStageStart.plusDays(14);
 
         // Round of 32 (16 matches) - Day 14-17
         // Teams TBD - will be populated after group stage
@@ -238,7 +243,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Round of 16 (8 matches) - Day 19-20
         // Winners from Round of 32
-        LocalDateTime r16Start = knockoutStart.plusDays(5);
+        ZonedDateTime r16Start = knockoutStart.plusDays(5);
         int r32Start = matchNumber - 16; // First R32 match number
         createKnockoutMatch(r16Start, "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_16, matchNumber++, "W" + r32Start, "W" + (r32Start + 1));
         createKnockoutMatch(r16Start.plusHours(3), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 2), "W" + (r32Start + 3));
@@ -253,7 +258,7 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized Round of 16 matches (teams TBD)");
 
         // Quarter-finals (4 matches) - Day 22-23
-        LocalDateTime qfStart = knockoutStart.plusDays(8);
+        ZonedDateTime qfStart = knockoutStart.plusDays(8);
         int r16StartNum = matchNumber - 8;
         createKnockoutMatch(qfStart, "MetLife Stadium", "New Jersey", Match.Stage.QUARTERFINAL, matchNumber++, "W" + r16StartNum, "W" + (r16StartNum + 1));
         createKnockoutMatch(qfStart.plusHours(4), "AT&T Stadium", "Dallas", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 2), "W" + (r16StartNum + 3));
@@ -263,7 +268,7 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized Quarter-final matches (teams TBD)");
 
         // Semi-finals (2 matches) - Day 26-27
-        LocalDateTime sfStart = knockoutStart.plusDays(12);
+        ZonedDateTime sfStart = knockoutStart.plusDays(12);
         int qfStartNum = matchNumber - 4;
         createKnockoutMatch(sfStart, "MetLife Stadium", "New Jersey", Match.Stage.SEMIFINAL, matchNumber++, "W" + qfStartNum, "W" + (qfStartNum + 1));
         createKnockoutMatch(sfStart.plusDays(1), "AT&T Stadium", "Dallas", Match.Stage.SEMIFINAL, matchNumber++, "W" + (qfStartNum + 2), "W" + (qfStartNum + 3));
@@ -271,20 +276,20 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized Semi-final matches (teams TBD)");
 
         // Third place playoff - Day 30
-        LocalDateTime thirdPlaceDate = knockoutStart.plusDays(16);
+        ZonedDateTime thirdPlaceDate = knockoutStart.plusDays(16);
         int sfStartNum = matchNumber - 2;
         createKnockoutMatch(thirdPlaceDate, "Hard Rock Stadium", "Miami", Match.Stage.THIRD_PLACE, matchNumber++, "L" + sfStartNum, "L" + (sfStartNum + 1));
 
         log.info("Initialized Third place match (teams TBD)");
 
         // Final - Day 31
-        LocalDateTime finalDate = knockoutStart.plusDays(17);
+        ZonedDateTime finalDate = knockoutStart.plusDays(17);
         createKnockoutMatch(finalDate, "MetLife Stadium", "New Jersey", Match.Stage.FINAL, matchNumber, "W" + sfStartNum, "W" + (sfStartNum + 1));
 
         log.info("Initialized Final match (teams TBD)");
     }
 
-    private void createKnockoutMatch(LocalDateTime date, String venue, String city,
+    private void createKnockoutMatch(ZonedDateTime date, String venue, String city,
                                       Match.Stage stage, int matchNumber,
                                       String homePlaceholder, String awayPlaceholder) {
         Match match = Match.builder()
@@ -292,7 +297,7 @@ public class DataInitializer implements CommandLineRunner {
                 .awayTeam(null)
                 .homePlaceholder(homePlaceholder)
                 .awayPlaceholder(awayPlaceholder)
-                .matchDate(date)
+                .matchDate(date.toInstant())
                 .venue(venue)
                 .city(city)
                 .stage(stage)
@@ -303,11 +308,11 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createGroupMatch(Map<String, Team> teams, String homeCode, String awayCode,
-                                   LocalDateTime date, String venue, String city, String group, int matchNumber) {
+                                   ZonedDateTime date, String venue, String city, String group, int matchNumber) {
         Match match = Match.builder()
                 .homeTeam(teams.get(homeCode))
                 .awayTeam(teams.get(awayCode))
-                .matchDate(date)
+                .matchDate(date.toInstant())
                 .venue(venue)
                 .city(city)
                 .stage(Match.Stage.GROUP)
