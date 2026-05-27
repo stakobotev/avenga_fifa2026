@@ -7,6 +7,28 @@ import type { Match, Prediction, LeaderboardEntry, BonusPrediction } from '../ty
 import { REGION_DISPLAY_NAMES } from '../types';
 import MatchCard from '../components/MatchCard';
 
+// Map FIFA 3-letter codes to ISO 2-letter codes for flag CDN
+const FIFA_TO_ISO: Record<string, string> = {
+  USA: 'us', MEX: 'mx', CAN: 'ca', JAM: 'jm', CRC: 'cr', PAN: 'pa', HON: 'hn', SLV: 'sv', GUA: 'gt', HAI: 'ht', TRI: 'tt', CUB: 'cu',
+  ARG: 'ar', BRA: 'br', URU: 'uy', COL: 'co', CHI: 'cl', ECU: 'ec', PER: 'pe', VEN: 've', PAR: 'py', BOL: 'bo',
+  GER: 'de', FRA: 'fr', ENG: 'gb-eng', ESP: 'es', ITA: 'it', NED: 'nl', POR: 'pt', BEL: 'be', SUI: 'ch', AUT: 'at',
+  WAL: 'gb-wls', SCO: 'gb-sct', NIR: 'gb-nir', IRL: 'ie',
+  DEN: 'dk', SWE: 'se', NOR: 'no', FIN: 'fi', ISL: 'is',
+  POL: 'pl', CZE: 'cz', SVK: 'sk', HUN: 'hu', UKR: 'ua',
+  CRO: 'hr', SRB: 'rs', SLO: 'si', BIH: 'ba', MNE: 'me', ALB: 'al', MKD: 'mk', KOS: 'xk', GRE: 'gr', CYP: 'cy',
+  ROU: 'ro', BUL: 'bg', TUR: 'tr', RUS: 'ru', GEO: 'ge', ARM: 'am', AZE: 'az',
+  JPN: 'jp', KOR: 'kr', AUS: 'au', IRN: 'ir', KSA: 'sa', QAT: 'qa', UAE: 'ae', CHN: 'cn', IND: 'in', IDN: 'id',
+  IRQ: 'iq', SYR: 'sy', JOR: 'jo', OMA: 'om', BHR: 'bh', KUW: 'kw', UZB: 'uz', THA: 'th', VIE: 'vn', MAS: 'my',
+  MAR: 'ma', SEN: 'sn', NGA: 'ng', EGY: 'eg', GHA: 'gh', CMR: 'cm', CIV: 'ci', ALG: 'dz', TUN: 'tn', RSA: 'za',
+  MLI: 'ml', BFA: 'bf', COD: 'cd', ZAM: 'zm', ZIM: 'zw', ANG: 'ao', MOZ: 'mz', UGA: 'ug', KEN: 'ke', TAN: 'tz',
+  NZL: 'nz',
+};
+
+const getFlagUrl = (code: string): string => {
+  const isoCode = FIFA_TO_ISO[code] || code.toLowerCase().slice(0, 2);
+  return `https://flagcdn.com/24x18/${isoCode}.png`;
+};
+
 export default function Dashboard() {
   const { user } = useAuthStore();
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
@@ -212,7 +234,14 @@ export default function Dashboard() {
                   <div key={type} className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">{labels[type]}</span>
                     {pred ? (
-                      <span className="font-medium text-green-600">
+                      <span className="font-medium text-green-600 flex items-center">
+                        {pred.selectedTeam?.code && (
+                          <img
+                            src={getFlagUrl(pred.selectedTeam.code)}
+                            alt={pred.selectedTeam.name}
+                            className="w-5 h-4 object-contain mr-1.5 rounded shadow-sm"
+                          />
+                        )}
                         {pred.selectedTeam?.code || pred.selectedPlayerName || '—'}
                       </span>
                     ) : (
