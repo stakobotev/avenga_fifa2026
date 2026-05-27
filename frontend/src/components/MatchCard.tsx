@@ -21,6 +21,7 @@ const FIFA_TO_ISO: Record<string, string> = {
   MAR: 'ma', SEN: 'sn', NGA: 'ng', EGY: 'eg', GHA: 'gh', CMR: 'cm', CIV: 'ci', ALG: 'dz', TUN: 'tn', RSA: 'za',
   MLI: 'ml', BFA: 'bf', COD: 'cd', ZAM: 'zm', ZIM: 'zw', ANG: 'ao', MOZ: 'mz', UGA: 'ug', KEN: 'ke', TAN: 'tz',
   NZL: 'nz',
+  CUW: 'cw', CPV: 'cv',
 };
 
 const getFlagUrl = (code: string): string => {

@@ -6,7 +6,7 @@ import GroupStandings from '../components/GroupStandings';
 import clsx from 'clsx';
 
 type View = 'all' | 'group' | 'knockout';
-type GroupFilter = 'all' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H';
+type GroupFilter = 'all' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L';
 
 export default function Matches() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -43,7 +43,7 @@ export default function Matches() {
     return true;
   });
 
-  const groups: GroupFilter[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  const groups: GroupFilter[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
   if (loading) {
     return (

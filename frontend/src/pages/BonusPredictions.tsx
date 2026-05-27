@@ -516,6 +516,8 @@ const FIFA_TO_ISO: Record<string, string> = {
   MLI: 'ml', BFA: 'bf', COD: 'cd', ZAM: 'zm', ZIM: 'zw', ANG: 'ao', MOZ: 'mz', UGA: 'ug', KEN: 'ke', TAN: 'tz',
   // Oceania
   NZL: 'nz',
+  // Caribbean
+  CUW: 'cw', CPV: 'cv',
 };
 
 const getFlagUrl = (code: string): string => {

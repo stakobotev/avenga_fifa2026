@@ -74,53 +74,77 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initializeTeams() {
         List<Team> teams = Arrays.asList(
-            // Group A
-            Team.builder().name("Mexico").code("MEX").groupLetter("A").confederation("CONCACAF").fifaRanking(15).build(),
-            Team.builder().name("United States").code("USA").groupLetter("A").confederation("CONCACAF").fifaRanking(11).build(),
-            Team.builder().name("Canada").code("CAN").groupLetter("A").confederation("CONCACAF").fifaRanking(43).build(),
-            Team.builder().name("Jamaica").code("JAM").groupLetter("A").confederation("CONCACAF").fifaRanking(57).build(),
+            // Group A: Mexico, South Korea, South Africa, Czechia
+            Team.builder().name("Mexico").code("MEX").groupLetter("A").confederation("CONCACAF").build(),
+            Team.builder().name("South Korea").code("KOR").groupLetter("A").confederation("AFC").build(),
+            Team.builder().name("South Africa").code("RSA").groupLetter("A").confederation("CAF").build(),
+            Team.builder().name("Czechia").code("CZE").groupLetter("A").confederation("UEFA").build(),
 
-            // Group B
-            Team.builder().name("Argentina").code("ARG").groupLetter("B").confederation("CONMEBOL").fifaRanking(1).build(),
-            Team.builder().name("Peru").code("PER").groupLetter("B").confederation("CONMEBOL").fifaRanking(32).build(),
-            Team.builder().name("Chile").code("CHI").groupLetter("B").confederation("CONMEBOL").fifaRanking(41).build(),
-            Team.builder().name("Ecuador").code("ECU").groupLetter("B").confederation("CONMEBOL").fifaRanking(30).build(),
+            // Group B: Canada, Switzerland, Qatar, Bosnia-Herzegovina
+            Team.builder().name("Canada").code("CAN").groupLetter("B").confederation("CONCACAF").build(),
+            Team.builder().name("Switzerland").code("SUI").groupLetter("B").confederation("UEFA").build(),
+            Team.builder().name("Qatar").code("QAT").groupLetter("B").confederation("AFC").build(),
+            Team.builder().name("Bosnia-Herzegovina").code("BIH").groupLetter("B").confederation("UEFA").build(),
 
-            // Group C
-            Team.builder().name("France").code("FRA").groupLetter("C").confederation("UEFA").fifaRanking(2).build(),
-            Team.builder().name("Australia").code("AUS").groupLetter("C").confederation("AFC").fifaRanking(24).build(),
-            Team.builder().name("Tunisia").code("TUN").groupLetter("C").confederation("CAF").fifaRanking(40).build(),
-            Team.builder().name("Saudi Arabia").code("KSA").groupLetter("C").confederation("AFC").fifaRanking(56).build(),
+            // Group C: Brazil, Morocco, Scotland, Haiti
+            Team.builder().name("Brazil").code("BRA").groupLetter("C").confederation("CONMEBOL").build(),
+            Team.builder().name("Morocco").code("MAR").groupLetter("C").confederation("CAF").build(),
+            Team.builder().name("Scotland").code("SCO").groupLetter("C").confederation("UEFA").build(),
+            Team.builder().name("Haiti").code("HAI").groupLetter("C").confederation("CONCACAF").build(),
 
-            // Group D
-            Team.builder().name("Brazil").code("BRA").groupLetter("D").confederation("CONMEBOL").fifaRanking(5).build(),
-            Team.builder().name("Colombia").code("COL").groupLetter("D").confederation("CONMEBOL").fifaRanking(12).build(),
-            Team.builder().name("Paraguay").code("PAR").groupLetter("D").confederation("CONMEBOL").fifaRanking(55).build(),
-            Team.builder().name("Venezuela").code("VEN").groupLetter("D").confederation("CONMEBOL").fifaRanking(54).build(),
+            // Group D: USA, Paraguay, Australia, Turkey
+            Team.builder().name("United States").code("USA").groupLetter("D").confederation("CONCACAF").build(),
+            Team.builder().name("Paraguay").code("PAR").groupLetter("D").confederation("CONMEBOL").build(),
+            Team.builder().name("Australia").code("AUS").groupLetter("D").confederation("AFC").build(),
+            Team.builder().name("Turkey").code("TUR").groupLetter("D").confederation("UEFA").build(),
 
-            // Group E
-            Team.builder().name("Germany").code("GER").groupLetter("E").confederation("UEFA").fifaRanking(16).build(),
-            Team.builder().name("Japan").code("JPN").groupLetter("E").confederation("AFC").fifaRanking(18).build(),
-            Team.builder().name("Serbia").code("SRB").groupLetter("E").confederation("UEFA").fifaRanking(33).build(),
-            Team.builder().name("New Zealand").code("NZL").groupLetter("E").confederation("OFC").fifaRanking(93).build(),
+            // Group E: Germany, Ecuador, Ivory Coast, Curacao
+            Team.builder().name("Germany").code("GER").groupLetter("E").confederation("UEFA").build(),
+            Team.builder().name("Ecuador").code("ECU").groupLetter("E").confederation("CONMEBOL").build(),
+            Team.builder().name("Ivory Coast").code("CIV").groupLetter("E").confederation("CAF").build(),
+            Team.builder().name("Curacao").code("CUW").groupLetter("E").confederation("CONCACAF").build(),
 
-            // Group F
-            Team.builder().name("Portugal").code("POR").groupLetter("F").confederation("UEFA").fifaRanking(6).build(),
-            Team.builder().name("Morocco").code("MAR").groupLetter("F").confederation("CAF").fifaRanking(13).build(),
-            Team.builder().name("Iran").code("IRN").groupLetter("F").confederation("AFC").fifaRanking(21).build(),
-            Team.builder().name("Ghana").code("GHA").groupLetter("F").confederation("CAF").fifaRanking(67).build(),
+            // Group F: Netherlands, Japan, Tunisia, Sweden
+            Team.builder().name("Netherlands").code("NED").groupLetter("F").confederation("UEFA").build(),
+            Team.builder().name("Japan").code("JPN").groupLetter("F").confederation("AFC").build(),
+            Team.builder().name("Tunisia").code("TUN").groupLetter("F").confederation("CAF").build(),
+            Team.builder().name("Sweden").code("SWE").groupLetter("F").confederation("UEFA").build(),
 
-            // Group G
-            Team.builder().name("Spain").code("ESP").groupLetter("G").confederation("UEFA").fifaRanking(8).build(),
-            Team.builder().name("Croatia").code("CRO").groupLetter("G").confederation("UEFA").fifaRanking(9).build(),
-            Team.builder().name("Uruguay").code("URU").groupLetter("G").confederation("CONMEBOL").fifaRanking(14).build(),
-            Team.builder().name("Costa Rica").code("CRC").groupLetter("G").confederation("CONCACAF").fifaRanking(48).build(),
+            // Group G: Belgium, Iran, Egypt, New Zealand
+            Team.builder().name("Belgium").code("BEL").groupLetter("G").confederation("UEFA").build(),
+            Team.builder().name("Iran").code("IRN").groupLetter("G").confederation("AFC").build(),
+            Team.builder().name("Egypt").code("EGY").groupLetter("G").confederation("CAF").build(),
+            Team.builder().name("New Zealand").code("NZL").groupLetter("G").confederation("OFC").build(),
 
-            // Group H
-            Team.builder().name("England").code("ENG").groupLetter("H").confederation("UEFA").fifaRanking(4).build(),
-            Team.builder().name("Netherlands").code("NED").groupLetter("H").confederation("UEFA").fifaRanking(3).build(),
-            Team.builder().name("Senegal").code("SEN").groupLetter("H").confederation("CAF").fifaRanking(17).build(),
-            Team.builder().name("South Korea").code("KOR").groupLetter("H").confederation("AFC").fifaRanking(22).build()
+            // Group H: Spain, Uruguay, Saudi Arabia, Cape Verde
+            Team.builder().name("Spain").code("ESP").groupLetter("H").confederation("UEFA").build(),
+            Team.builder().name("Uruguay").code("URU").groupLetter("H").confederation("CONMEBOL").build(),
+            Team.builder().name("Saudi Arabia").code("KSA").groupLetter("H").confederation("AFC").build(),
+            Team.builder().name("Cape Verde").code("CPV").groupLetter("H").confederation("CAF").build(),
+
+            // Group I: France, Senegal, Norway, Iraq
+            Team.builder().name("France").code("FRA").groupLetter("I").confederation("UEFA").build(),
+            Team.builder().name("Senegal").code("SEN").groupLetter("I").confederation("CAF").build(),
+            Team.builder().name("Norway").code("NOR").groupLetter("I").confederation("UEFA").build(),
+            Team.builder().name("Iraq").code("IRQ").groupLetter("I").confederation("AFC").build(),
+
+            // Group J: Argentina, Austria, Algeria, Jordan
+            Team.builder().name("Argentina").code("ARG").groupLetter("J").confederation("CONMEBOL").build(),
+            Team.builder().name("Austria").code("AUT").groupLetter("J").confederation("UEFA").build(),
+            Team.builder().name("Algeria").code("ALG").groupLetter("J").confederation("CAF").build(),
+            Team.builder().name("Jordan").code("JOR").groupLetter("J").confederation("AFC").build(),
+
+            // Group K: Portugal, Colombia, Uzbekistan, DR Congo
+            Team.builder().name("Portugal").code("POR").groupLetter("K").confederation("UEFA").build(),
+            Team.builder().name("Colombia").code("COL").groupLetter("K").confederation("CONMEBOL").build(),
+            Team.builder().name("Uzbekistan").code("UZB").groupLetter("K").confederation("AFC").build(),
+            Team.builder().name("DR Congo").code("COD").groupLetter("K").confederation("CAF").build(),
+
+            // Group L: England, Croatia, Panama, Ghana
+            Team.builder().name("England").code("ENG").groupLetter("L").confederation("UEFA").build(),
+            Team.builder().name("Croatia").code("CRO").groupLetter("L").confederation("UEFA").build(),
+            Team.builder().name("Panama").code("PAN").groupLetter("L").confederation("CONCACAF").build(),
+            Team.builder().name("Ghana").code("GHA").groupLetter("L").confederation("CAF").build()
         );
 
         teamRepository.saveAll(teams);
@@ -134,110 +158,139 @@ public class DataInitializer implements CommandLineRunner {
         // Tournament starts June 11, 2026
         // Match times specified in US Eastern Time (where most venues are located)
         // Stored as UTC Instant for consistent timezone handling
-        ZonedDateTime startDate = ZonedDateTime.of(2026, 6, 11, 20, 0, 0, 0, ZoneId.of("America/New_York"));
+        ZonedDateTime startDate = ZonedDateTime.of(2026, 6, 11, 12, 0, 0, 0, ZoneId.of("America/New_York"));
         int matchNumber = 1;
 
-        // Group A matches
-        createGroupMatch(teamsByCode, "MEX", "JAM", startDate, "Estadio Azteca", "Mexico City", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "USA", "CAN", startDate.plusHours(3), "MetLife Stadium", "New Jersey", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "MEX", "CAN", startDate.plusDays(4), "Estadio Azteca", "Mexico City", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "USA", "JAM", startDate.plusDays(4).plusHours(3), "SoFi Stadium", "Los Angeles", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "MEX", "USA", startDate.plusDays(8), "AT&T Stadium", "Dallas", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "CAN", "JAM", startDate.plusDays(8), "BMO Field", "Toronto", "A", matchNumber++);
+        // Group A: Mexico, South Korea, South Africa, Czechia
+        createGroupMatch(teamsByCode, "MEX", "RSA", startDate, "Estadio Azteca", "Mexico City", "A", matchNumber++);
+        createGroupMatch(teamsByCode, "KOR", "CZE", startDate.plusHours(6), "AT&T Stadium", "Dallas", "A", matchNumber++);
+        createGroupMatch(teamsByCode, "MEX", "KOR", startDate.plusDays(4), "Estadio Azteca", "Mexico City", "A", matchNumber++);
+        createGroupMatch(teamsByCode, "RSA", "CZE", startDate.plusDays(4).plusHours(3), "NRG Stadium", "Houston", "A", matchNumber++);
+        createGroupMatch(teamsByCode, "MEX", "CZE", startDate.plusDays(8), "AT&T Stadium", "Dallas", "A", matchNumber++);
+        createGroupMatch(teamsByCode, "KOR", "RSA", startDate.plusDays(8), "NRG Stadium", "Houston", "A", matchNumber++);
 
-        // Group B matches
-        createGroupMatch(teamsByCode, "ARG", "ECU", startDate.plusDays(1), "Hard Rock Stadium", "Miami", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "PER", "CHI", startDate.plusDays(1).plusHours(3), "Levi's Stadium", "Santa Clara", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "ARG", "CHI", startDate.plusDays(5), "Hard Rock Stadium", "Miami", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "PER", "ECU", startDate.plusDays(5).plusHours(3), "Mercedes-Benz Stadium", "Atlanta", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "ARG", "PER", startDate.plusDays(9), "MetLife Stadium", "New Jersey", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "CHI", "ECU", startDate.plusDays(9), "Levi's Stadium", "Santa Clara", "B", matchNumber++);
+        // Group B: Canada, Switzerland, Qatar, Bosnia-Herzegovina
+        createGroupMatch(teamsByCode, "CAN", "QAT", startDate.plusHours(3), "BMO Field", "Toronto", "B", matchNumber++);
+        createGroupMatch(teamsByCode, "SUI", "BIH", startDate.plusHours(9), "BC Place", "Vancouver", "B", matchNumber++);
+        createGroupMatch(teamsByCode, "CAN", "SUI", startDate.plusDays(4).plusHours(6), "BMO Field", "Toronto", "B", matchNumber++);
+        createGroupMatch(teamsByCode, "QAT", "BIH", startDate.plusDays(4).plusHours(9), "BC Place", "Vancouver", "B", matchNumber++);
+        createGroupMatch(teamsByCode, "CAN", "BIH", startDate.plusDays(8).plusHours(3), "BMO Field", "Toronto", "B", matchNumber++);
+        createGroupMatch(teamsByCode, "SUI", "QAT", startDate.plusDays(8).plusHours(3), "BC Place", "Vancouver", "B", matchNumber++);
 
-        // Group C matches
-        createGroupMatch(teamsByCode, "FRA", "KSA", startDate.plusDays(2), "SoFi Stadium", "Los Angeles", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "AUS", "TUN", startDate.plusDays(2).plusHours(3), "NRG Stadium", "Houston", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "FRA", "TUN", startDate.plusDays(6), "SoFi Stadium", "Los Angeles", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "AUS", "KSA", startDate.plusDays(6).plusHours(3), "AT&T Stadium", "Dallas", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "FRA", "AUS", startDate.plusDays(10), "MetLife Stadium", "New Jersey", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "TUN", "KSA", startDate.plusDays(10), "NRG Stadium", "Houston", "C", matchNumber++);
+        // Group C: Brazil, Morocco, Scotland, Haiti
+        createGroupMatch(teamsByCode, "BRA", "HAI", startDate.plusDays(1), "SoFi Stadium", "Los Angeles", "C", matchNumber++);
+        createGroupMatch(teamsByCode, "MAR", "SCO", startDate.plusDays(1).plusHours(6), "Hard Rock Stadium", "Miami", "C", matchNumber++);
+        createGroupMatch(teamsByCode, "BRA", "MAR", startDate.plusDays(5), "SoFi Stadium", "Los Angeles", "C", matchNumber++);
+        createGroupMatch(teamsByCode, "HAI", "SCO", startDate.plusDays(5).plusHours(3), "Hard Rock Stadium", "Miami", "C", matchNumber++);
+        createGroupMatch(teamsByCode, "BRA", "SCO", startDate.plusDays(9), "MetLife Stadium", "New Jersey", "C", matchNumber++);
+        createGroupMatch(teamsByCode, "MAR", "HAI", startDate.plusDays(9), "Hard Rock Stadium", "Miami", "C", matchNumber++);
 
-        // Group D matches
-        createGroupMatch(teamsByCode, "BRA", "VEN", startDate.plusDays(3), "Hard Rock Stadium", "Miami", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "COL", "PAR", startDate.plusDays(3).plusHours(3), "Mercedes-Benz Stadium", "Atlanta", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "BRA", "PAR", startDate.plusDays(7), "MetLife Stadium", "New Jersey", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "COL", "VEN", startDate.plusDays(7).plusHours(3), "Hard Rock Stadium", "Miami", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "BRA", "COL", startDate.plusDays(11), "SoFi Stadium", "Los Angeles", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "PAR", "VEN", startDate.plusDays(11), "Mercedes-Benz Stadium", "Atlanta", "D", matchNumber++);
+        // Group D: USA, Paraguay, Australia, Turkey
+        createGroupMatch(teamsByCode, "USA", "PAR", startDate.plusDays(1).plusHours(3), "MetLife Stadium", "New Jersey", "D", matchNumber++);
+        createGroupMatch(teamsByCode, "AUS", "TUR", startDate.plusDays(1).plusHours(9), "Levi's Stadium", "Santa Clara", "D", matchNumber++);
+        createGroupMatch(teamsByCode, "USA", "AUS", startDate.plusDays(5).plusHours(6), "MetLife Stadium", "New Jersey", "D", matchNumber++);
+        createGroupMatch(teamsByCode, "PAR", "TUR", startDate.plusDays(5).plusHours(9), "Levi's Stadium", "Santa Clara", "D", matchNumber++);
+        createGroupMatch(teamsByCode, "USA", "TUR", startDate.plusDays(9).plusHours(6), "SoFi Stadium", "Los Angeles", "D", matchNumber++);
+        createGroupMatch(teamsByCode, "AUS", "PAR", startDate.plusDays(9).plusHours(6), "Levi's Stadium", "Santa Clara", "D", matchNumber++);
 
-        // Group E matches
-        createGroupMatch(teamsByCode, "GER", "NZL", startDate.plusDays(1), "Lincoln Financial Field", "Philadelphia", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "JPN", "SRB", startDate.plusDays(1).plusHours(3), "Gillette Stadium", "Foxborough", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "GER", "SRB", startDate.plusDays(5), "MetLife Stadium", "New Jersey", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "JPN", "NZL", startDate.plusDays(5).plusHours(3), "BC Place", "Vancouver", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "GER", "JPN", startDate.plusDays(9), "AT&T Stadium", "Dallas", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "SRB", "NZL", startDate.plusDays(9), "Lincoln Financial Field", "Philadelphia", "E", matchNumber++);
+        // Group E: Germany, Ecuador, Ivory Coast, Curacao
+        createGroupMatch(teamsByCode, "GER", "CUW", startDate.plusDays(2), "Lincoln Financial Field", "Philadelphia", "E", matchNumber++);
+        createGroupMatch(teamsByCode, "ECU", "CIV", startDate.plusDays(2).plusHours(6), "Mercedes-Benz Stadium", "Atlanta", "E", matchNumber++);
+        createGroupMatch(teamsByCode, "GER", "ECU", startDate.plusDays(6), "Lincoln Financial Field", "Philadelphia", "E", matchNumber++);
+        createGroupMatch(teamsByCode, "CUW", "CIV", startDate.plusDays(6).plusHours(3), "Mercedes-Benz Stadium", "Atlanta", "E", matchNumber++);
+        createGroupMatch(teamsByCode, "GER", "CIV", startDate.plusDays(10), "MetLife Stadium", "New Jersey", "E", matchNumber++);
+        createGroupMatch(teamsByCode, "ECU", "CUW", startDate.plusDays(10), "Mercedes-Benz Stadium", "Atlanta", "E", matchNumber++);
 
-        // Group F matches
-        createGroupMatch(teamsByCode, "POR", "GHA", startDate.plusDays(2), "Mercedes-Benz Stadium", "Atlanta", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "MAR", "IRN", startDate.plusDays(2).plusHours(3), "Lumen Field", "Seattle", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "POR", "IRN", startDate.plusDays(6), "Hard Rock Stadium", "Miami", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "MAR", "GHA", startDate.plusDays(6).plusHours(3), "Mercedes-Benz Stadium", "Atlanta", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "POR", "MAR", startDate.plusDays(10), "SoFi Stadium", "Los Angeles", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "IRN", "GHA", startDate.plusDays(10), "Lumen Field", "Seattle", "F", matchNumber++);
+        // Group F: Netherlands, Japan, Tunisia, Sweden
+        createGroupMatch(teamsByCode, "NED", "SWE", startDate.plusDays(2).plusHours(3), "Gillette Stadium", "Foxborough", "F", matchNumber++);
+        createGroupMatch(teamsByCode, "JPN", "TUN", startDate.plusDays(2).plusHours(9), "Lumen Field", "Seattle", "F", matchNumber++);
+        createGroupMatch(teamsByCode, "NED", "JPN", startDate.plusDays(6).plusHours(6), "Gillette Stadium", "Foxborough", "F", matchNumber++);
+        createGroupMatch(teamsByCode, "SWE", "TUN", startDate.plusDays(6).plusHours(9), "Lumen Field", "Seattle", "F", matchNumber++);
+        createGroupMatch(teamsByCode, "NED", "TUN", startDate.plusDays(10).plusHours(3), "Gillette Stadium", "Foxborough", "F", matchNumber++);
+        createGroupMatch(teamsByCode, "JPN", "SWE", startDate.plusDays(10).plusHours(3), "Lumen Field", "Seattle", "F", matchNumber++);
 
-        // Group G matches
-        createGroupMatch(teamsByCode, "ESP", "CRC", startDate.plusDays(3), "Levi's Stadium", "Santa Clara", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "CRO", "URU", startDate.plusDays(3).plusHours(3), "SoFi Stadium", "Los Angeles", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "ESP", "URU", startDate.plusDays(7), "AT&T Stadium", "Dallas", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "CRO", "CRC", startDate.plusDays(7).plusHours(3), "Levi's Stadium", "Santa Clara", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "ESP", "CRO", startDate.plusDays(11), "MetLife Stadium", "New Jersey", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "URU", "CRC", startDate.plusDays(11), "NRG Stadium", "Houston", "G", matchNumber++);
+        // Group G: Belgium, Iran, Egypt, New Zealand
+        createGroupMatch(teamsByCode, "BEL", "NZL", startDate.plusDays(3), "AT&T Stadium", "Dallas", "G", matchNumber++);
+        createGroupMatch(teamsByCode, "IRN", "EGY", startDate.plusDays(3).plusHours(6), "NRG Stadium", "Houston", "G", matchNumber++);
+        createGroupMatch(teamsByCode, "BEL", "IRN", startDate.plusDays(7), "AT&T Stadium", "Dallas", "G", matchNumber++);
+        createGroupMatch(teamsByCode, "NZL", "EGY", startDate.plusDays(7).plusHours(3), "NRG Stadium", "Houston", "G", matchNumber++);
+        createGroupMatch(teamsByCode, "BEL", "EGY", startDate.plusDays(11), "AT&T Stadium", "Dallas", "G", matchNumber++);
+        createGroupMatch(teamsByCode, "IRN", "NZL", startDate.plusDays(11), "NRG Stadium", "Houston", "G", matchNumber++);
 
-        // Group H matches
-        createGroupMatch(teamsByCode, "ENG", "KOR", startDate.plusDays(4), "MetLife Stadium", "New Jersey", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "NED", "SEN", startDate.plusDays(4).plusHours(3), "Lincoln Financial Field", "Philadelphia", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "ENG", "SEN", startDate.plusDays(8), "Hard Rock Stadium", "Miami", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "NED", "KOR", startDate.plusDays(8).plusHours(3), "NRG Stadium", "Houston", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "ENG", "NED", startDate.plusDays(12), "SoFi Stadium", "Los Angeles", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "SEN", "KOR", startDate.plusDays(12), "Gillette Stadium", "Foxborough", "H", matchNumber++);
+        // Group H: Spain, Uruguay, Saudi Arabia, Cape Verde
+        createGroupMatch(teamsByCode, "ESP", "CPV", startDate.plusDays(3).plusHours(3), "Hard Rock Stadium", "Miami", "H", matchNumber++);
+        createGroupMatch(teamsByCode, "URU", "KSA", startDate.plusDays(3).plusHours(9), "SoFi Stadium", "Los Angeles", "H", matchNumber++);
+        createGroupMatch(teamsByCode, "ESP", "URU", startDate.plusDays(7).plusHours(6), "Hard Rock Stadium", "Miami", "H", matchNumber++);
+        createGroupMatch(teamsByCode, "CPV", "KSA", startDate.plusDays(7).plusHours(9), "SoFi Stadium", "Los Angeles", "H", matchNumber++);
+        createGroupMatch(teamsByCode, "ESP", "KSA", startDate.plusDays(11).plusHours(6), "Hard Rock Stadium", "Miami", "H", matchNumber++);
+        createGroupMatch(teamsByCode, "URU", "CPV", startDate.plusDays(11).plusHours(6), "SoFi Stadium", "Los Angeles", "H", matchNumber++);
 
-        log.info("Initialized group stage matches");
+        // Group I: France, Senegal, Norway, Iraq
+        createGroupMatch(teamsByCode, "FRA", "IRQ", startDate.plusDays(4), "MetLife Stadium", "New Jersey", "I", matchNumber++);
+        createGroupMatch(teamsByCode, "SEN", "NOR", startDate.plusDays(4).plusHours(6), "Lincoln Financial Field", "Philadelphia", "I", matchNumber++);
+        createGroupMatch(teamsByCode, "FRA", "SEN", startDate.plusDays(8), "MetLife Stadium", "New Jersey", "I", matchNumber++);
+        createGroupMatch(teamsByCode, "IRQ", "NOR", startDate.plusDays(8).plusHours(3), "Lincoln Financial Field", "Philadelphia", "I", matchNumber++);
+        createGroupMatch(teamsByCode, "FRA", "NOR", startDate.plusDays(12), "MetLife Stadium", "New Jersey", "I", matchNumber++);
+        createGroupMatch(teamsByCode, "SEN", "IRQ", startDate.plusDays(12), "Lincoln Financial Field", "Philadelphia", "I", matchNumber++);
 
-        // Initialize knockout matches with placeholder teams (simulating qualified teams)
+        // Group J: Argentina, Austria, Algeria, Jordan
+        createGroupMatch(teamsByCode, "ARG", "JOR", startDate.plusDays(4).plusHours(3), "Hard Rock Stadium", "Miami", "J", matchNumber++);
+        createGroupMatch(teamsByCode, "AUT", "ALG", startDate.plusDays(4).plusHours(9), "Mercedes-Benz Stadium", "Atlanta", "J", matchNumber++);
+        createGroupMatch(teamsByCode, "ARG", "AUT", startDate.plusDays(8).plusHours(6), "Hard Rock Stadium", "Miami", "J", matchNumber++);
+        createGroupMatch(teamsByCode, "JOR", "ALG", startDate.plusDays(8).plusHours(9), "Mercedes-Benz Stadium", "Atlanta", "J", matchNumber++);
+        createGroupMatch(teamsByCode, "ARG", "ALG", startDate.plusDays(12).plusHours(3), "Hard Rock Stadium", "Miami", "J", matchNumber++);
+        createGroupMatch(teamsByCode, "AUT", "JOR", startDate.plusDays(12).plusHours(3), "Mercedes-Benz Stadium", "Atlanta", "J", matchNumber++);
+
+        // Group K: Portugal, Colombia, Uzbekistan, DR Congo
+        createGroupMatch(teamsByCode, "POR", "COD", startDate.plusDays(5), "Levi's Stadium", "Santa Clara", "K", matchNumber++);
+        createGroupMatch(teamsByCode, "COL", "UZB", startDate.plusDays(5).plusHours(6), "BC Place", "Vancouver", "K", matchNumber++);
+        createGroupMatch(teamsByCode, "POR", "COL", startDate.plusDays(9).plusHours(3), "Levi's Stadium", "Santa Clara", "K", matchNumber++);
+        createGroupMatch(teamsByCode, "COD", "UZB", startDate.plusDays(9).plusHours(9), "BC Place", "Vancouver", "K", matchNumber++);
+        createGroupMatch(teamsByCode, "POR", "UZB", startDate.plusDays(13), "Levi's Stadium", "Santa Clara", "K", matchNumber++);
+        createGroupMatch(teamsByCode, "COL", "COD", startDate.plusDays(13), "BC Place", "Vancouver", "K", matchNumber++);
+
+        // Group L: England, Croatia, Panama, Ghana
+        createGroupMatch(teamsByCode, "ENG", "GHA", startDate.plusDays(5).plusHours(3), "SoFi Stadium", "Los Angeles", "L", matchNumber++);
+        createGroupMatch(teamsByCode, "CRO", "PAN", startDate.plusDays(5).plusHours(9), "Estadio Azteca", "Mexico City", "L", matchNumber++);
+        createGroupMatch(teamsByCode, "ENG", "CRO", startDate.plusDays(9).plusHours(12), "SoFi Stadium", "Los Angeles", "L", matchNumber++);
+        createGroupMatch(teamsByCode, "GHA", "PAN", startDate.plusDays(9).plusHours(12), "Estadio Azteca", "Mexico City", "L", matchNumber++);
+        createGroupMatch(teamsByCode, "ENG", "PAN", startDate.plusDays(13).plusHours(6), "SoFi Stadium", "Los Angeles", "L", matchNumber++);
+        createGroupMatch(teamsByCode, "CRO", "GHA", startDate.plusDays(13).plusHours(6), "Estadio Azteca", "Mexico City", "L", matchNumber++);
+
+        log.info("Initialized {} group stage matches", matchNumber - 1);
+
+        // Initialize knockout matches with placeholder teams
         initializeKnockoutMatches(teamsByCode, startDate, matchNumber);
     }
 
     private void initializeKnockoutMatches(Map<String, Team> teams, ZonedDateTime groupStageStart, int matchNumber) {
-        // Knockout stage starts after group stage (day 14)
-        ZonedDateTime knockoutStart = groupStageStart.plusDays(14);
+        // Knockout stage starts after group stage (day 15)
+        ZonedDateTime knockoutStart = groupStageStart.plusDays(15);
 
-        // Round of 32 (16 matches) - Day 14-17
-        // Teams TBD - will be populated after group stage
+        // Round of 32 (16 matches)
+        // 12 group winners + 12 runners-up + 8 best third-place = 32 teams
         // Placeholders: 1A = 1st in Group A, 2B = 2nd in Group B, 3rd = Best 3rd place
 
-        // Round of 32 - Day 14
+        // Round of 32 - Day 15-18
         createKnockoutMatch(knockoutStart, "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "1A", "3rd");
-        createKnockoutMatch(knockoutStart.plusHours(3), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "2A", "2C");
-        createKnockoutMatch(knockoutStart.plusHours(6), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "1B", "3rd");
-        createKnockoutMatch(knockoutStart.plusHours(9), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "2B", "2D");
+        createKnockoutMatch(knockoutStart.plusHours(4), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "1B", "3rd");
+        createKnockoutMatch(knockoutStart.plusHours(8), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "1C", "3rd");
+        createKnockoutMatch(knockoutStart.plusHours(12), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "1D", "3rd");
 
-        // Round of 32 - Day 15
-        createKnockoutMatch(knockoutStart.plusDays(1), "Levi's Stadium", "Santa Clara", Match.Stage.ROUND_OF_32, matchNumber++, "1C", "3rd");
-        createKnockoutMatch(knockoutStart.plusDays(1).plusHours(3), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_32, matchNumber++, "2E", "2G");
-        createKnockoutMatch(knockoutStart.plusDays(1).plusHours(6), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_32, matchNumber++, "1D", "3rd");
-        createKnockoutMatch(knockoutStart.plusDays(1).plusHours(9), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_32, matchNumber++, "2F", "2H");
+        createKnockoutMatch(knockoutStart.plusDays(1), "Levi's Stadium", "Santa Clara", Match.Stage.ROUND_OF_32, matchNumber++, "1E", "3rd");
+        createKnockoutMatch(knockoutStart.plusDays(1).plusHours(4), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_32, matchNumber++, "1F", "3rd");
+        createKnockoutMatch(knockoutStart.plusDays(1).plusHours(8), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_32, matchNumber++, "1G", "3rd");
+        createKnockoutMatch(knockoutStart.plusDays(1).plusHours(12), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_32, matchNumber++, "1H", "3rd");
 
-        // Round of 32 - Day 16
-        createKnockoutMatch(knockoutStart.plusDays(2), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "1E", "3rd");
-        createKnockoutMatch(knockoutStart.plusDays(2).plusHours(3), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "1F", "3rd");
-        createKnockoutMatch(knockoutStart.plusDays(2).plusHours(6), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "1G", "3rd");
-        createKnockoutMatch(knockoutStart.plusDays(2).plusHours(9), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "1H", "3rd");
+        createKnockoutMatch(knockoutStart.plusDays(2), "BC Place", "Vancouver", Match.Stage.ROUND_OF_32, matchNumber++, "1I", "2C");
+        createKnockoutMatch(knockoutStart.plusDays(2).plusHours(4), "BMO Field", "Toronto", Match.Stage.ROUND_OF_32, matchNumber++, "1J", "2D");
+        createKnockoutMatch(knockoutStart.plusDays(2).plusHours(8), "Estadio Azteca", "Mexico City", Match.Stage.ROUND_OF_32, matchNumber++, "1K", "2E");
+        createKnockoutMatch(knockoutStart.plusDays(2).plusHours(12), "Gillette Stadium", "Foxborough", Match.Stage.ROUND_OF_32, matchNumber++, "1L", "2F");
 
-        // Round of 32 - Day 17
-        createKnockoutMatch(knockoutStart.plusDays(3), "Levi's Stadium", "Santa Clara", Match.Stage.ROUND_OF_32, matchNumber++, "2A", "2E");
-        createKnockoutMatch(knockoutStart.plusDays(3).plusHours(3), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_32, matchNumber++, "2B", "2F");
-        createKnockoutMatch(knockoutStart.plusDays(3).plusHours(6), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_32, matchNumber++, "2C", "2G");
-        createKnockoutMatch(knockoutStart.plusDays(3).plusHours(9), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_32, matchNumber++, "2D", "2H");
+        createKnockoutMatch(knockoutStart.plusDays(3), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "2A", "2G");
+        createKnockoutMatch(knockoutStart.plusDays(3).plusHours(4), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "2B", "2H");
+        createKnockoutMatch(knockoutStart.plusDays(3).plusHours(8), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "2I", "2J");
+        createKnockoutMatch(knockoutStart.plusDays(3).plusHours(12), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "2K", "2L");
 
         log.info("Initialized Round of 32 matches (teams TBD)");
 
