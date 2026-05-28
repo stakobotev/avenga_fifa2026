@@ -567,6 +567,23 @@ export default function BonusPredictions() {
 
   const getPrediction = (type: string) => predictions.find(p => p.predictionType === type);
 
+  // Get team IDs already selected for other team-based predictions (excluding current type)
+  const getSelectedTeamIds = (excludeType: string): Set<number> => {
+    const teamTypes = ['CHAMPION', 'RUNNER_UP', 'THIRD_PLACE'];
+    const selectedIds = new Set<number>();
+
+    for (const type of teamTypes) {
+      if (type !== excludeType) {
+        const pred = predictions.find(p => p.predictionType === type);
+        if (pred?.selectedTeam?.id) {
+          selectedIds.add(pred.selectedTeam.id);
+        }
+      }
+    }
+
+    return selectedIds;
+  };
+
   const handleTeamSelect = async (type: string, teamId: number) => {
     if (saving) return;
     setSaving(type);
@@ -704,32 +721,41 @@ export default function BonusPredictions() {
                         </button>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-80 overflow-y-auto">
-                        {teams.map(team => (
-                          <button
-                            key={team.id}
-                            onClick={() => handleTeamSelect(type, team.id)}
-                            disabled={saving === type}
-                            className={clsx(
-                              'flex items-center p-3 rounded-lg border-2 transition-all text-left',
-                              selectedTeam?.id === team.id
-                                ? 'border-avenga-red bg-red-50'
-                                : 'border-gray-200 hover:border-purple-400 hover:bg-purple-50'
-                            )}
-                          >
-                            <img
-                              src={getFlagUrl(team.code)}
-                              alt={team.name}
-                              className="w-10 h-7 object-contain mr-3 rounded shadow-sm"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 truncate">{team.name}</p>
-                              <p className="text-xs text-gray-500">{team.code}</p>
-                            </div>
-                            {selectedTeam?.id === team.id && (
-                              <Check className="h-5 w-5 text-avenga-red ml-2" />
-                            )}
-                          </button>
-                        ))}
+                        {(() => {
+                          const alreadySelectedIds = getSelectedTeamIds(type);
+                          return teams.map(team => {
+                            const isAlreadySelected = alreadySelectedIds.has(team.id);
+                            return (
+                              <button
+                                key={team.id}
+                                onClick={() => handleTeamSelect(type, team.id)}
+                                disabled={saving === type || isAlreadySelected}
+                                title={isAlreadySelected ? 'Already selected for another prediction' : undefined}
+                                className={clsx(
+                                  'flex items-center p-3 rounded-lg border-2 transition-all text-left',
+                                  selectedTeam?.id === team.id
+                                    ? 'border-avenga-red bg-red-50'
+                                    : isAlreadySelected
+                                    ? 'border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed'
+                                    : 'border-gray-200 hover:border-purple-400 hover:bg-purple-50'
+                                )}
+                              >
+                                <img
+                                  src={getFlagUrl(team.code)}
+                                  alt={team.name}
+                                  className="w-10 h-7 object-contain mr-3 rounded shadow-sm"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className={clsx('font-medium truncate', isAlreadySelected ? 'text-gray-400' : 'text-gray-900')}>{team.name}</p>
+                                  <p className="text-xs text-gray-500">{team.code}</p>
+                                </div>
+                                {selectedTeam?.id === team.id && (
+                                  <Check className="h-5 w-5 text-avenga-red ml-2" />
+                                )}
+                              </button>
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                   )}
