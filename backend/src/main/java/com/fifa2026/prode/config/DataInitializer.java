@@ -48,10 +48,8 @@ public class DataInitializer implements CommandLineRunner {
                 int lastMatchNumber = matchRepository.findAll().stream()
                         .mapToInt(m -> m.getMatchNumber() != null ? m.getMatchNumber() : 0)
                         .max()
-                        .orElse(48);
-                // Match times in US Eastern Time (where most venues are)
-                ZonedDateTime startDate = ZonedDateTime.of(2026, 6, 11, 20, 0, 0, 0, ZoneId.of("America/New_York"));
-                initializeKnockoutMatches(teamsByCode, startDate, lastMatchNumber + 1);
+                        .orElse(72);
+                initializeKnockoutMatches(teamsByCode, lastMatchNumber + 1);
             }
         }
         initializeAdminUser();
@@ -155,189 +153,280 @@ public class DataInitializer implements CommandLineRunner {
         Map<String, Team> teamsByCode = teamRepository.findAll().stream()
                 .collect(Collectors.toMap(Team::getCode, t -> t));
 
-        // Tournament starts June 11, 2026
-        // Match times specified in US Eastern Time (where most venues are located)
-        // Stored as UTC Instant for consistent timezone handling
-        ZonedDateTime startDate = ZonedDateTime.of(2026, 6, 11, 12, 0, 0, 0, ZoneId.of("America/New_York"));
+        // Official FIFA World Cup 2026 Schedule
+        // All times in US Eastern Time (ET), stored as UTC Instant
+        ZoneId et = ZoneId.of("America/New_York");
         int matchNumber = 1;
 
-        // Group A: Mexico, South Korea, South Africa, Czechia
-        createGroupMatch(teamsByCode, "MEX", "RSA", startDate, "Estadio Azteca", "Mexico City", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "KOR", "CZE", startDate.plusHours(6), "AT&T Stadium", "Dallas", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "MEX", "KOR", startDate.plusDays(4), "Estadio Azteca", "Mexico City", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "RSA", "CZE", startDate.plusDays(4).plusHours(3), "NRG Stadium", "Houston", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "MEX", "CZE", startDate.plusDays(8), "AT&T Stadium", "Dallas", "A", matchNumber++);
-        createGroupMatch(teamsByCode, "KOR", "RSA", startDate.plusDays(8), "NRG Stadium", "Houston", "A", matchNumber++);
+        // ===== GROUP A: Mexico, South Korea, South Africa, Czechia =====
+        // June 11: Mexico vs South Africa - 3pm ET - Estadio Azteca, Mexico City
+        createGroupMatch(teamsByCode, "MEX", "RSA", ZonedDateTime.of(2026, 6, 11, 15, 0, 0, 0, et), "Estadio Azteca", "Mexico City", "A", matchNumber++);
+        // June 11: South Korea vs Czechia - 10pm ET - Estadio Akron, Guadalajara
+        createGroupMatch(teamsByCode, "KOR", "CZE", ZonedDateTime.of(2026, 6, 11, 22, 0, 0, 0, et), "Estadio Akron", "Guadalajara", "A", matchNumber++);
+        // June 18: Czechia vs South Africa - 12pm ET - Mercedes-Benz Stadium, Atlanta
+        createGroupMatch(teamsByCode, "CZE", "RSA", ZonedDateTime.of(2026, 6, 18, 12, 0, 0, 0, et), "Mercedes-Benz Stadium", "Atlanta", "A", matchNumber++);
+        // June 18: Mexico vs South Korea - 9pm ET - Estadio Akron, Guadalajara
+        createGroupMatch(teamsByCode, "MEX", "KOR", ZonedDateTime.of(2026, 6, 18, 21, 0, 0, 0, et), "Estadio Akron", "Guadalajara", "A", matchNumber++);
+        // June 24: Czechia vs Mexico - 9pm ET - Estadio Azteca, Mexico City
+        createGroupMatch(teamsByCode, "CZE", "MEX", ZonedDateTime.of(2026, 6, 24, 21, 0, 0, 0, et), "Estadio Azteca", "Mexico City", "A", matchNumber++);
+        // June 24: South Africa vs South Korea - 9pm ET - Estadio BBVA, Monterrey
+        createGroupMatch(teamsByCode, "RSA", "KOR", ZonedDateTime.of(2026, 6, 24, 21, 0, 0, 0, et), "Estadio BBVA", "Monterrey", "A", matchNumber++);
 
-        // Group B: Canada, Switzerland, Qatar, Bosnia-Herzegovina
-        createGroupMatch(teamsByCode, "CAN", "QAT", startDate.plusHours(3), "BMO Field", "Toronto", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "SUI", "BIH", startDate.plusHours(9), "BC Place", "Vancouver", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "CAN", "SUI", startDate.plusDays(4).plusHours(6), "BMO Field", "Toronto", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "QAT", "BIH", startDate.plusDays(4).plusHours(9), "BC Place", "Vancouver", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "CAN", "BIH", startDate.plusDays(8).plusHours(3), "BMO Field", "Toronto", "B", matchNumber++);
-        createGroupMatch(teamsByCode, "SUI", "QAT", startDate.plusDays(8).plusHours(3), "BC Place", "Vancouver", "B", matchNumber++);
+        // ===== GROUP B: Canada, Switzerland, Qatar, Bosnia-Herzegovina =====
+        // June 12: Canada vs Bosnia and Herzegovina - 3pm ET - BMO Field, Toronto
+        createGroupMatch(teamsByCode, "CAN", "BIH", ZonedDateTime.of(2026, 6, 12, 15, 0, 0, 0, et), "BMO Field", "Toronto", "B", matchNumber++);
+        // June 13: Qatar vs Switzerland - 3pm ET - Levi's Stadium, San Francisco
+        createGroupMatch(teamsByCode, "QAT", "SUI", ZonedDateTime.of(2026, 6, 13, 15, 0, 0, 0, et), "Levi's Stadium", "San Francisco Bay Area", "B", matchNumber++);
+        // June 18: Switzerland vs Bosnia and Herzegovina - 3pm ET - SoFi Stadium, Los Angeles
+        createGroupMatch(teamsByCode, "SUI", "BIH", ZonedDateTime.of(2026, 6, 18, 15, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", "B", matchNumber++);
+        // June 18: Canada vs Qatar - 6pm ET - BC Place, Vancouver
+        createGroupMatch(teamsByCode, "CAN", "QAT", ZonedDateTime.of(2026, 6, 18, 18, 0, 0, 0, et), "BC Place", "Vancouver", "B", matchNumber++);
+        // June 24: Switzerland vs Canada - 3pm ET - BC Place, Vancouver
+        createGroupMatch(teamsByCode, "SUI", "CAN", ZonedDateTime.of(2026, 6, 24, 15, 0, 0, 0, et), "BC Place", "Vancouver", "B", matchNumber++);
+        // June 24: Bosnia and Herzegovina vs Qatar - 3pm ET - Lumen Field, Seattle
+        createGroupMatch(teamsByCode, "BIH", "QAT", ZonedDateTime.of(2026, 6, 24, 15, 0, 0, 0, et), "Lumen Field", "Seattle", "B", matchNumber++);
 
-        // Group C: Brazil, Morocco, Scotland, Haiti
-        createGroupMatch(teamsByCode, "BRA", "HAI", startDate.plusDays(1), "SoFi Stadium", "Los Angeles", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "MAR", "SCO", startDate.plusDays(1).plusHours(6), "Hard Rock Stadium", "Miami", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "BRA", "MAR", startDate.plusDays(5), "SoFi Stadium", "Los Angeles", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "HAI", "SCO", startDate.plusDays(5).plusHours(3), "Hard Rock Stadium", "Miami", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "BRA", "SCO", startDate.plusDays(9), "MetLife Stadium", "New Jersey", "C", matchNumber++);
-        createGroupMatch(teamsByCode, "MAR", "HAI", startDate.plusDays(9), "Hard Rock Stadium", "Miami", "C", matchNumber++);
+        // ===== GROUP C: Brazil, Morocco, Scotland, Haiti =====
+        // June 13: Brazil vs Morocco - 6pm ET - MetLife Stadium, New Jersey
+        createGroupMatch(teamsByCode, "BRA", "MAR", ZonedDateTime.of(2026, 6, 13, 18, 0, 0, 0, et), "MetLife Stadium", "New Jersey", "C", matchNumber++);
+        // June 13: Haiti vs Scotland - 9pm ET - Gillette Stadium, Boston
+        createGroupMatch(teamsByCode, "HAI", "SCO", ZonedDateTime.of(2026, 6, 13, 21, 0, 0, 0, et), "Gillette Stadium", "Boston", "C", matchNumber++);
+        // June 19: Scotland vs Morocco - 6pm ET - Gillette Stadium, Boston
+        createGroupMatch(teamsByCode, "SCO", "MAR", ZonedDateTime.of(2026, 6, 19, 18, 0, 0, 0, et), "Gillette Stadium", "Boston", "C", matchNumber++);
+        // June 19: Brazil vs Haiti - 9pm ET - Lincoln Financial Field, Philadelphia
+        createGroupMatch(teamsByCode, "BRA", "HAI", ZonedDateTime.of(2026, 6, 19, 21, 0, 0, 0, et), "Lincoln Financial Field", "Philadelphia", "C", matchNumber++);
+        // June 24: Scotland vs Brazil - 6pm ET - Hard Rock Stadium, Miami
+        createGroupMatch(teamsByCode, "SCO", "BRA", ZonedDateTime.of(2026, 6, 24, 18, 0, 0, 0, et), "Hard Rock Stadium", "Miami", "C", matchNumber++);
+        // June 24: Morocco vs Haiti - 6pm ET - Mercedes-Benz Stadium, Atlanta
+        createGroupMatch(teamsByCode, "MAR", "HAI", ZonedDateTime.of(2026, 6, 24, 18, 0, 0, 0, et), "Mercedes-Benz Stadium", "Atlanta", "C", matchNumber++);
 
-        // Group D: USA, Paraguay, Australia, Turkey
-        createGroupMatch(teamsByCode, "USA", "PAR", startDate.plusDays(1).plusHours(3), "MetLife Stadium", "New Jersey", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "AUS", "TUR", startDate.plusDays(1).plusHours(9), "Levi's Stadium", "Santa Clara", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "USA", "AUS", startDate.plusDays(5).plusHours(6), "MetLife Stadium", "New Jersey", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "PAR", "TUR", startDate.plusDays(5).plusHours(9), "Levi's Stadium", "Santa Clara", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "USA", "TUR", startDate.plusDays(9).plusHours(6), "SoFi Stadium", "Los Angeles", "D", matchNumber++);
-        createGroupMatch(teamsByCode, "AUS", "PAR", startDate.plusDays(9).plusHours(6), "Levi's Stadium", "Santa Clara", "D", matchNumber++);
+        // ===== GROUP D: USA, Paraguay, Australia, Turkey =====
+        // June 12: USA vs Paraguay - 9pm ET - SoFi Stadium, Los Angeles
+        createGroupMatch(teamsByCode, "USA", "PAR", ZonedDateTime.of(2026, 6, 12, 21, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", "D", matchNumber++);
+        // June 13: Australia vs Turkey - 12am ET (midnight) - BC Place, Vancouver
+        createGroupMatch(teamsByCode, "AUS", "TUR", ZonedDateTime.of(2026, 6, 14, 0, 0, 0, 0, et), "BC Place", "Vancouver", "D", matchNumber++);
+        // June 19: USA vs Australia - 3pm ET - Lumen Field, Seattle
+        createGroupMatch(teamsByCode, "USA", "AUS", ZonedDateTime.of(2026, 6, 19, 15, 0, 0, 0, et), "Lumen Field", "Seattle", "D", matchNumber++);
+        // June 19: Turkey vs Paraguay - 12am ET (midnight, June 20) - Levi's Stadium, San Francisco
+        createGroupMatch(teamsByCode, "TUR", "PAR", ZonedDateTime.of(2026, 6, 20, 0, 0, 0, 0, et), "Levi's Stadium", "San Francisco Bay Area", "D", matchNumber++);
+        // June 25: Turkey vs USA - 10pm ET - SoFi Stadium, Los Angeles
+        createGroupMatch(teamsByCode, "TUR", "USA", ZonedDateTime.of(2026, 6, 25, 22, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", "D", matchNumber++);
+        // June 25: Paraguay vs Australia - 10pm ET - Levi's Stadium, San Francisco
+        createGroupMatch(teamsByCode, "PAR", "AUS", ZonedDateTime.of(2026, 6, 25, 22, 0, 0, 0, et), "Levi's Stadium", "San Francisco Bay Area", "D", matchNumber++);
 
-        // Group E: Germany, Ecuador, Ivory Coast, Curacao
-        createGroupMatch(teamsByCode, "GER", "CUW", startDate.plusDays(2), "Lincoln Financial Field", "Philadelphia", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "ECU", "CIV", startDate.plusDays(2).plusHours(6), "Mercedes-Benz Stadium", "Atlanta", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "GER", "ECU", startDate.plusDays(6), "Lincoln Financial Field", "Philadelphia", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "CUW", "CIV", startDate.plusDays(6).plusHours(3), "Mercedes-Benz Stadium", "Atlanta", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "GER", "CIV", startDate.plusDays(10), "MetLife Stadium", "New Jersey", "E", matchNumber++);
-        createGroupMatch(teamsByCode, "ECU", "CUW", startDate.plusDays(10), "Mercedes-Benz Stadium", "Atlanta", "E", matchNumber++);
+        // ===== GROUP E: Germany, Ecuador, Ivory Coast, Curacao =====
+        // June 14: Germany vs Curacao - 1pm ET - NRG Stadium, Houston
+        createGroupMatch(teamsByCode, "GER", "CUW", ZonedDateTime.of(2026, 6, 14, 13, 0, 0, 0, et), "NRG Stadium", "Houston", "E", matchNumber++);
+        // June 14: Ivory Coast vs Ecuador - 7pm ET - Lincoln Financial Field, Philadelphia
+        createGroupMatch(teamsByCode, "CIV", "ECU", ZonedDateTime.of(2026, 6, 14, 19, 0, 0, 0, et), "Lincoln Financial Field", "Philadelphia", "E", matchNumber++);
+        // June 20: Germany vs Ivory Coast - 4pm ET - BMO Field, Toronto
+        createGroupMatch(teamsByCode, "GER", "CIV", ZonedDateTime.of(2026, 6, 20, 16, 0, 0, 0, et), "BMO Field", "Toronto", "E", matchNumber++);
+        // June 20: Ecuador vs Curacao - 8pm ET - Arrowhead Stadium, Kansas City
+        createGroupMatch(teamsByCode, "ECU", "CUW", ZonedDateTime.of(2026, 6, 20, 20, 0, 0, 0, et), "Arrowhead Stadium", "Kansas City", "E", matchNumber++);
+        // June 25: Ecuador vs Germany - 4pm ET - MetLife Stadium, New Jersey
+        createGroupMatch(teamsByCode, "ECU", "GER", ZonedDateTime.of(2026, 6, 25, 16, 0, 0, 0, et), "MetLife Stadium", "New Jersey", "E", matchNumber++);
+        // June 25: Curacao vs Ivory Coast - 4pm ET - Lincoln Financial Field, Philadelphia
+        createGroupMatch(teamsByCode, "CUW", "CIV", ZonedDateTime.of(2026, 6, 25, 16, 0, 0, 0, et), "Lincoln Financial Field", "Philadelphia", "E", matchNumber++);
 
-        // Group F: Netherlands, Japan, Tunisia, Sweden
-        createGroupMatch(teamsByCode, "NED", "SWE", startDate.plusDays(2).plusHours(3), "Gillette Stadium", "Foxborough", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "JPN", "TUN", startDate.plusDays(2).plusHours(9), "Lumen Field", "Seattle", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "NED", "JPN", startDate.plusDays(6).plusHours(6), "Gillette Stadium", "Foxborough", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "SWE", "TUN", startDate.plusDays(6).plusHours(9), "Lumen Field", "Seattle", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "NED", "TUN", startDate.plusDays(10).plusHours(3), "Gillette Stadium", "Foxborough", "F", matchNumber++);
-        createGroupMatch(teamsByCode, "JPN", "SWE", startDate.plusDays(10).plusHours(3), "Lumen Field", "Seattle", "F", matchNumber++);
+        // ===== GROUP F: Netherlands, Japan, Tunisia, Sweden =====
+        // June 14: Netherlands vs Japan - 4pm ET - AT&T Stadium, Dallas
+        createGroupMatch(teamsByCode, "NED", "JPN", ZonedDateTime.of(2026, 6, 14, 16, 0, 0, 0, et), "AT&T Stadium", "Dallas", "F", matchNumber++);
+        // June 14: Sweden vs Tunisia - 10pm ET - Estadio BBVA, Monterrey
+        createGroupMatch(teamsByCode, "SWE", "TUN", ZonedDateTime.of(2026, 6, 14, 22, 0, 0, 0, et), "Estadio BBVA", "Monterrey", "F", matchNumber++);
+        // June 20: Netherlands vs Sweden - 1pm ET - NRG Stadium, Houston
+        createGroupMatch(teamsByCode, "NED", "SWE", ZonedDateTime.of(2026, 6, 20, 13, 0, 0, 0, et), "NRG Stadium", "Houston", "F", matchNumber++);
+        // June 20: Tunisia vs Japan - 12am ET (midnight, June 21) - Estadio BBVA, Monterrey
+        createGroupMatch(teamsByCode, "TUN", "JPN", ZonedDateTime.of(2026, 6, 21, 0, 0, 0, 0, et), "Estadio BBVA", "Monterrey", "F", matchNumber++);
+        // June 25: Japan vs Sweden - 7pm ET - AT&T Stadium, Dallas
+        createGroupMatch(teamsByCode, "JPN", "SWE", ZonedDateTime.of(2026, 6, 25, 19, 0, 0, 0, et), "AT&T Stadium", "Dallas", "F", matchNumber++);
+        // June 25: Tunisia vs Netherlands - 7pm ET - Arrowhead Stadium, Kansas City
+        createGroupMatch(teamsByCode, "TUN", "NED", ZonedDateTime.of(2026, 6, 25, 19, 0, 0, 0, et), "Arrowhead Stadium", "Kansas City", "F", matchNumber++);
 
-        // Group G: Belgium, Iran, Egypt, New Zealand
-        createGroupMatch(teamsByCode, "BEL", "NZL", startDate.plusDays(3), "AT&T Stadium", "Dallas", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "IRN", "EGY", startDate.plusDays(3).plusHours(6), "NRG Stadium", "Houston", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "BEL", "IRN", startDate.plusDays(7), "AT&T Stadium", "Dallas", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "NZL", "EGY", startDate.plusDays(7).plusHours(3), "NRG Stadium", "Houston", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "BEL", "EGY", startDate.plusDays(11), "AT&T Stadium", "Dallas", "G", matchNumber++);
-        createGroupMatch(teamsByCode, "IRN", "NZL", startDate.plusDays(11), "NRG Stadium", "Houston", "G", matchNumber++);
+        // ===== GROUP G: Belgium, Iran, Egypt, New Zealand =====
+        // June 15: Belgium vs Egypt - 3pm ET - Lumen Field, Seattle
+        createGroupMatch(teamsByCode, "BEL", "EGY", ZonedDateTime.of(2026, 6, 15, 15, 0, 0, 0, et), "Lumen Field", "Seattle", "G", matchNumber++);
+        // June 15: Iran vs New Zealand - 9pm ET - SoFi Stadium, Los Angeles
+        createGroupMatch(teamsByCode, "IRN", "NZL", ZonedDateTime.of(2026, 6, 15, 21, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", "G", matchNumber++);
+        // June 21: Belgium vs Iran - 3pm ET - SoFi Stadium, Los Angeles
+        createGroupMatch(teamsByCode, "BEL", "IRN", ZonedDateTime.of(2026, 6, 21, 15, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", "G", matchNumber++);
+        // June 21: New Zealand vs Egypt - 9pm ET - BC Place, Vancouver
+        createGroupMatch(teamsByCode, "NZL", "EGY", ZonedDateTime.of(2026, 6, 21, 21, 0, 0, 0, et), "BC Place", "Vancouver", "G", matchNumber++);
+        // June 26: Egypt vs Iran - 11pm ET - Lumen Field, Seattle
+        createGroupMatch(teamsByCode, "EGY", "IRN", ZonedDateTime.of(2026, 6, 26, 23, 0, 0, 0, et), "Lumen Field", "Seattle", "G", matchNumber++);
+        // June 26: New Zealand vs Belgium - 11pm ET - BC Place, Vancouver
+        createGroupMatch(teamsByCode, "NZL", "BEL", ZonedDateTime.of(2026, 6, 26, 23, 0, 0, 0, et), "BC Place", "Vancouver", "G", matchNumber++);
 
-        // Group H: Spain, Uruguay, Saudi Arabia, Cape Verde
-        createGroupMatch(teamsByCode, "ESP", "CPV", startDate.plusDays(3).plusHours(3), "Hard Rock Stadium", "Miami", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "URU", "KSA", startDate.plusDays(3).plusHours(9), "SoFi Stadium", "Los Angeles", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "ESP", "URU", startDate.plusDays(7).plusHours(6), "Hard Rock Stadium", "Miami", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "CPV", "KSA", startDate.plusDays(7).plusHours(9), "SoFi Stadium", "Los Angeles", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "ESP", "KSA", startDate.plusDays(11).plusHours(6), "Hard Rock Stadium", "Miami", "H", matchNumber++);
-        createGroupMatch(teamsByCode, "URU", "CPV", startDate.plusDays(11).plusHours(6), "SoFi Stadium", "Los Angeles", "H", matchNumber++);
+        // ===== GROUP H: Spain, Uruguay, Saudi Arabia, Cape Verde =====
+        // June 15: Spain vs Cape Verde - 12pm ET - Mercedes-Benz Stadium, Atlanta
+        createGroupMatch(teamsByCode, "ESP", "CPV", ZonedDateTime.of(2026, 6, 15, 12, 0, 0, 0, et), "Mercedes-Benz Stadium", "Atlanta", "H", matchNumber++);
+        // June 15: Saudi Arabia vs Uruguay - 6pm ET - Hard Rock Stadium, Miami
+        createGroupMatch(teamsByCode, "KSA", "URU", ZonedDateTime.of(2026, 6, 15, 18, 0, 0, 0, et), "Hard Rock Stadium", "Miami", "H", matchNumber++);
+        // June 21: Spain vs Saudi Arabia - 12pm ET - Mercedes-Benz Stadium, Atlanta
+        createGroupMatch(teamsByCode, "ESP", "KSA", ZonedDateTime.of(2026, 6, 21, 12, 0, 0, 0, et), "Mercedes-Benz Stadium", "Atlanta", "H", matchNumber++);
+        // June 21: Uruguay vs Cape Verde - 6pm ET - Hard Rock Stadium, Miami
+        createGroupMatch(teamsByCode, "URU", "CPV", ZonedDateTime.of(2026, 6, 21, 18, 0, 0, 0, et), "Hard Rock Stadium", "Miami", "H", matchNumber++);
+        // June 26: Cape Verde vs Saudi Arabia - 8pm ET - NRG Stadium, Houston
+        createGroupMatch(teamsByCode, "CPV", "KSA", ZonedDateTime.of(2026, 6, 26, 20, 0, 0, 0, et), "NRG Stadium", "Houston", "H", matchNumber++);
+        // June 26: Uruguay vs Spain - 8pm ET - Estadio Akron, Guadalajara
+        createGroupMatch(teamsByCode, "URU", "ESP", ZonedDateTime.of(2026, 6, 26, 20, 0, 0, 0, et), "Estadio Akron", "Guadalajara", "H", matchNumber++);
 
-        // Group I: France, Senegal, Norway, Iraq
-        createGroupMatch(teamsByCode, "FRA", "IRQ", startDate.plusDays(4), "MetLife Stadium", "New Jersey", "I", matchNumber++);
-        createGroupMatch(teamsByCode, "SEN", "NOR", startDate.plusDays(4).plusHours(6), "Lincoln Financial Field", "Philadelphia", "I", matchNumber++);
-        createGroupMatch(teamsByCode, "FRA", "SEN", startDate.plusDays(8), "MetLife Stadium", "New Jersey", "I", matchNumber++);
-        createGroupMatch(teamsByCode, "IRQ", "NOR", startDate.plusDays(8).plusHours(3), "Lincoln Financial Field", "Philadelphia", "I", matchNumber++);
-        createGroupMatch(teamsByCode, "FRA", "NOR", startDate.plusDays(12), "MetLife Stadium", "New Jersey", "I", matchNumber++);
-        createGroupMatch(teamsByCode, "SEN", "IRQ", startDate.plusDays(12), "Lincoln Financial Field", "Philadelphia", "I", matchNumber++);
+        // ===== GROUP I: France, Senegal, Norway, Iraq =====
+        // June 16: France vs Senegal - 3pm ET - MetLife Stadium, New Jersey
+        createGroupMatch(teamsByCode, "FRA", "SEN", ZonedDateTime.of(2026, 6, 16, 15, 0, 0, 0, et), "MetLife Stadium", "New Jersey", "I", matchNumber++);
+        // June 16: Iraq vs Norway - 6pm ET - Gillette Stadium, Boston
+        createGroupMatch(teamsByCode, "IRQ", "NOR", ZonedDateTime.of(2026, 6, 16, 18, 0, 0, 0, et), "Gillette Stadium", "Boston", "I", matchNumber++);
+        // June 22: France vs Iraq - 5pm ET - Lincoln Financial Field, Philadelphia
+        createGroupMatch(teamsByCode, "FRA", "IRQ", ZonedDateTime.of(2026, 6, 22, 17, 0, 0, 0, et), "Lincoln Financial Field", "Philadelphia", "I", matchNumber++);
+        // June 22: Norway vs Senegal - 8pm ET - MetLife Stadium, New Jersey
+        createGroupMatch(teamsByCode, "NOR", "SEN", ZonedDateTime.of(2026, 6, 22, 20, 0, 0, 0, et), "MetLife Stadium", "New Jersey", "I", matchNumber++);
+        // June 26: Norway vs France - 3pm ET - Gillette Stadium, Boston
+        createGroupMatch(teamsByCode, "NOR", "FRA", ZonedDateTime.of(2026, 6, 26, 15, 0, 0, 0, et), "Gillette Stadium", "Boston", "I", matchNumber++);
+        // June 26: Senegal vs Iraq - 3pm ET - BMO Field, Toronto
+        createGroupMatch(teamsByCode, "SEN", "IRQ", ZonedDateTime.of(2026, 6, 26, 15, 0, 0, 0, et), "BMO Field", "Toronto", "I", matchNumber++);
 
-        // Group J: Argentina, Austria, Algeria, Jordan
-        createGroupMatch(teamsByCode, "ARG", "JOR", startDate.plusDays(4).plusHours(3), "Hard Rock Stadium", "Miami", "J", matchNumber++);
-        createGroupMatch(teamsByCode, "AUT", "ALG", startDate.plusDays(4).plusHours(9), "Mercedes-Benz Stadium", "Atlanta", "J", matchNumber++);
-        createGroupMatch(teamsByCode, "ARG", "AUT", startDate.plusDays(8).plusHours(6), "Hard Rock Stadium", "Miami", "J", matchNumber++);
-        createGroupMatch(teamsByCode, "JOR", "ALG", startDate.plusDays(8).plusHours(9), "Mercedes-Benz Stadium", "Atlanta", "J", matchNumber++);
-        createGroupMatch(teamsByCode, "ARG", "ALG", startDate.plusDays(12).plusHours(3), "Hard Rock Stadium", "Miami", "J", matchNumber++);
-        createGroupMatch(teamsByCode, "AUT", "JOR", startDate.plusDays(12).plusHours(3), "Mercedes-Benz Stadium", "Atlanta", "J", matchNumber++);
+        // ===== GROUP J: Argentina, Austria, Algeria, Jordan =====
+        // June 16: Argentina vs Algeria - 9pm ET - Arrowhead Stadium, Kansas City
+        createGroupMatch(teamsByCode, "ARG", "ALG", ZonedDateTime.of(2026, 6, 16, 21, 0, 0, 0, et), "Arrowhead Stadium", "Kansas City", "J", matchNumber++);
+        // June 16: Austria vs Jordan - 12am ET (midnight, June 17) - Levi's Stadium, San Francisco
+        createGroupMatch(teamsByCode, "AUT", "JOR", ZonedDateTime.of(2026, 6, 17, 0, 0, 0, 0, et), "Levi's Stadium", "San Francisco Bay Area", "J", matchNumber++);
+        // June 22: Argentina vs Austria - 1pm ET - AT&T Stadium, Dallas
+        createGroupMatch(teamsByCode, "ARG", "AUT", ZonedDateTime.of(2026, 6, 22, 13, 0, 0, 0, et), "AT&T Stadium", "Dallas", "J", matchNumber++);
+        // June 22: Jordan vs Algeria - 11pm ET - Levi's Stadium, San Francisco
+        createGroupMatch(teamsByCode, "JOR", "ALG", ZonedDateTime.of(2026, 6, 22, 23, 0, 0, 0, et), "Levi's Stadium", "San Francisco Bay Area", "J", matchNumber++);
+        // June 27: Algeria vs Austria - 10pm ET - Arrowhead Stadium, Kansas City
+        createGroupMatch(teamsByCode, "ALG", "AUT", ZonedDateTime.of(2026, 6, 27, 22, 0, 0, 0, et), "Arrowhead Stadium", "Kansas City", "J", matchNumber++);
+        // June 27: Jordan vs Argentina - 10pm ET - AT&T Stadium, Dallas
+        createGroupMatch(teamsByCode, "JOR", "ARG", ZonedDateTime.of(2026, 6, 27, 22, 0, 0, 0, et), "AT&T Stadium", "Dallas", "J", matchNumber++);
 
-        // Group K: Portugal, Colombia, Uzbekistan, DR Congo
-        createGroupMatch(teamsByCode, "POR", "COD", startDate.plusDays(5), "Levi's Stadium", "Santa Clara", "K", matchNumber++);
-        createGroupMatch(teamsByCode, "COL", "UZB", startDate.plusDays(5).plusHours(6), "BC Place", "Vancouver", "K", matchNumber++);
-        createGroupMatch(teamsByCode, "POR", "COL", startDate.plusDays(9).plusHours(3), "Levi's Stadium", "Santa Clara", "K", matchNumber++);
-        createGroupMatch(teamsByCode, "COD", "UZB", startDate.plusDays(9).plusHours(9), "BC Place", "Vancouver", "K", matchNumber++);
-        createGroupMatch(teamsByCode, "POR", "UZB", startDate.plusDays(13), "Levi's Stadium", "Santa Clara", "K", matchNumber++);
-        createGroupMatch(teamsByCode, "COL", "COD", startDate.plusDays(13), "BC Place", "Vancouver", "K", matchNumber++);
+        // ===== GROUP K: Portugal, Colombia, Uzbekistan, DR Congo =====
+        // June 17: Portugal vs DR Congo - 1pm ET - NRG Stadium, Houston
+        createGroupMatch(teamsByCode, "POR", "COD", ZonedDateTime.of(2026, 6, 17, 13, 0, 0, 0, et), "NRG Stadium", "Houston", "K", matchNumber++);
+        // June 17: Uzbekistan vs Colombia - 10pm ET - Estadio Azteca, Mexico City
+        createGroupMatch(teamsByCode, "UZB", "COL", ZonedDateTime.of(2026, 6, 17, 22, 0, 0, 0, et), "Estadio Azteca", "Mexico City", "K", matchNumber++);
+        // June 23: Portugal vs Uzbekistan - 1pm ET - NRG Stadium, Houston
+        createGroupMatch(teamsByCode, "POR", "UZB", ZonedDateTime.of(2026, 6, 23, 13, 0, 0, 0, et), "NRG Stadium", "Houston", "K", matchNumber++);
+        // June 23: Colombia vs DR Congo - 10pm ET - Estadio Akron, Guadalajara
+        createGroupMatch(teamsByCode, "COL", "COD", ZonedDateTime.of(2026, 6, 23, 22, 0, 0, 0, et), "Estadio Akron", "Guadalajara", "K", matchNumber++);
+        // June 27: Colombia vs Portugal - 7:30pm ET - Hard Rock Stadium, Miami
+        createGroupMatch(teamsByCode, "COL", "POR", ZonedDateTime.of(2026, 6, 27, 19, 30, 0, 0, et), "Hard Rock Stadium", "Miami", "K", matchNumber++);
+        // June 27: DR Congo vs Uzbekistan - 7:30pm ET - Mercedes-Benz Stadium, Atlanta
+        createGroupMatch(teamsByCode, "COD", "UZB", ZonedDateTime.of(2026, 6, 27, 19, 30, 0, 0, et), "Mercedes-Benz Stadium", "Atlanta", "K", matchNumber++);
 
-        // Group L: England, Croatia, Panama, Ghana
-        createGroupMatch(teamsByCode, "ENG", "GHA", startDate.plusDays(5).plusHours(3), "SoFi Stadium", "Los Angeles", "L", matchNumber++);
-        createGroupMatch(teamsByCode, "CRO", "PAN", startDate.plusDays(5).plusHours(9), "Estadio Azteca", "Mexico City", "L", matchNumber++);
-        createGroupMatch(teamsByCode, "ENG", "CRO", startDate.plusDays(9).plusHours(12), "SoFi Stadium", "Los Angeles", "L", matchNumber++);
-        createGroupMatch(teamsByCode, "GHA", "PAN", startDate.plusDays(9).plusHours(12), "Estadio Azteca", "Mexico City", "L", matchNumber++);
-        createGroupMatch(teamsByCode, "ENG", "PAN", startDate.plusDays(13).plusHours(6), "SoFi Stadium", "Los Angeles", "L", matchNumber++);
-        createGroupMatch(teamsByCode, "CRO", "GHA", startDate.plusDays(13).plusHours(6), "Estadio Azteca", "Mexico City", "L", matchNumber++);
+        // ===== GROUP L: England, Croatia, Panama, Ghana =====
+        // June 17: England vs Croatia - 4pm ET - AT&T Stadium, Dallas
+        createGroupMatch(teamsByCode, "ENG", "CRO", ZonedDateTime.of(2026, 6, 17, 16, 0, 0, 0, et), "AT&T Stadium", "Dallas", "L", matchNumber++);
+        // June 17: Ghana vs Panama - 7pm ET - BMO Field, Toronto
+        createGroupMatch(teamsByCode, "GHA", "PAN", ZonedDateTime.of(2026, 6, 17, 19, 0, 0, 0, et), "BMO Field", "Toronto", "L", matchNumber++);
+        // June 23: England vs Ghana - 4pm ET - Gillette Stadium, Boston
+        createGroupMatch(teamsByCode, "ENG", "GHA", ZonedDateTime.of(2026, 6, 23, 16, 0, 0, 0, et), "Gillette Stadium", "Boston", "L", matchNumber++);
+        // June 23: Panama vs Croatia - 7pm ET - BMO Field, Toronto
+        createGroupMatch(teamsByCode, "PAN", "CRO", ZonedDateTime.of(2026, 6, 23, 19, 0, 0, 0, et), "BMO Field", "Toronto", "L", matchNumber++);
+        // June 27: Panama vs England - 5pm ET - MetLife Stadium, New Jersey
+        createGroupMatch(teamsByCode, "PAN", "ENG", ZonedDateTime.of(2026, 6, 27, 17, 0, 0, 0, et), "MetLife Stadium", "New Jersey", "L", matchNumber++);
+        // June 27: Croatia vs Ghana - 5pm ET - Lincoln Financial Field, Philadelphia
+        createGroupMatch(teamsByCode, "CRO", "GHA", ZonedDateTime.of(2026, 6, 27, 17, 0, 0, 0, et), "Lincoln Financial Field", "Philadelphia", "L", matchNumber++);
 
         log.info("Initialized {} group stage matches", matchNumber - 1);
 
         // Initialize knockout matches with placeholder teams
-        initializeKnockoutMatches(teamsByCode, startDate, matchNumber);
+        initializeKnockoutMatches(teamsByCode, matchNumber);
     }
 
-    private void initializeKnockoutMatches(Map<String, Team> teams, ZonedDateTime groupStageStart, int matchNumber) {
-        // Knockout stage starts after group stage (day 15)
-        ZonedDateTime knockoutStart = groupStageStart.plusDays(15);
+    private void initializeKnockoutMatches(Map<String, Team> teams, int matchNumber) {
+        // Official FIFA World Cup 2026 Knockout Stage Schedule
+        // All times in US Eastern Time (ET)
+        ZoneId et = ZoneId.of("America/New_York");
 
-        // Round of 32 (16 matches)
-        // 12 group winners + 12 runners-up + 8 best third-place = 32 teams
+        // Round of 32: June 28 - July 3 (16 matches)
         // Placeholders: 1A = 1st in Group A, 2B = 2nd in Group B, 3rd = Best 3rd place
 
-        // Round of 32 - Day 15-18
-        createKnockoutMatch(knockoutStart, "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "1A", "3rd");
-        createKnockoutMatch(knockoutStart.plusHours(4), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "1B", "3rd");
-        createKnockoutMatch(knockoutStart.plusHours(8), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "1C", "3rd");
-        createKnockoutMatch(knockoutStart.plusHours(12), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "1D", "3rd");
+        // June 28 - Round of 32 Day 1
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 28, 12, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "1A", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 28, 16, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "1B", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 28, 20, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "1C", "3rd");
 
-        createKnockoutMatch(knockoutStart.plusDays(1), "Levi's Stadium", "Santa Clara", Match.Stage.ROUND_OF_32, matchNumber++, "1E", "3rd");
-        createKnockoutMatch(knockoutStart.plusDays(1).plusHours(4), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_32, matchNumber++, "1F", "3rd");
-        createKnockoutMatch(knockoutStart.plusDays(1).plusHours(8), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_32, matchNumber++, "1G", "3rd");
-        createKnockoutMatch(knockoutStart.plusDays(1).plusHours(12), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_32, matchNumber++, "1H", "3rd");
+        // June 29 - Round of 32 Day 2
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 29, 12, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "1D", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 29, 16, 0, 0, 0, et), "Levi's Stadium", "San Francisco Bay Area", Match.Stage.ROUND_OF_32, matchNumber++, "1E", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 29, 20, 0, 0, 0, et), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_32, matchNumber++, "1F", "3rd");
 
-        createKnockoutMatch(knockoutStart.plusDays(2), "BC Place", "Vancouver", Match.Stage.ROUND_OF_32, matchNumber++, "1I", "2C");
-        createKnockoutMatch(knockoutStart.plusDays(2).plusHours(4), "BMO Field", "Toronto", Match.Stage.ROUND_OF_32, matchNumber++, "1J", "2D");
-        createKnockoutMatch(knockoutStart.plusDays(2).plusHours(8), "Estadio Azteca", "Mexico City", Match.Stage.ROUND_OF_32, matchNumber++, "1K", "2E");
-        createKnockoutMatch(knockoutStart.plusDays(2).plusHours(12), "Gillette Stadium", "Foxborough", Match.Stage.ROUND_OF_32, matchNumber++, "1L", "2F");
+        // June 30 - Round of 32 Day 3
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 30, 12, 0, 0, 0, et), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_32, matchNumber++, "1G", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 30, 16, 0, 0, 0, et), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_32, matchNumber++, "1H", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 30, 20, 0, 0, 0, et), "BC Place", "Vancouver", Match.Stage.ROUND_OF_32, matchNumber++, "1I", "2C");
 
-        createKnockoutMatch(knockoutStart.plusDays(3), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "2A", "2G");
-        createKnockoutMatch(knockoutStart.plusDays(3).plusHours(4), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "2B", "2H");
-        createKnockoutMatch(knockoutStart.plusDays(3).plusHours(8), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "2I", "2J");
-        createKnockoutMatch(knockoutStart.plusDays(3).plusHours(12), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "2K", "2L");
+        // July 1 - Round of 32 Day 4
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 1, 12, 0, 0, 0, et), "BMO Field", "Toronto", Match.Stage.ROUND_OF_32, matchNumber++, "1J", "2D");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 1, 16, 0, 0, 0, et), "Estadio Azteca", "Mexico City", Match.Stage.ROUND_OF_32, matchNumber++, "1K", "2E");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 1, 20, 0, 0, 0, et), "Gillette Stadium", "Boston", Match.Stage.ROUND_OF_32, matchNumber++, "1L", "2F");
+
+        // July 2 - Round of 32 Day 5
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 2, 12, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "2A", "2G");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 2, 16, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "2B", "2H");
+
+        // July 3 - Round of 32 Day 6
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 3, 16, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "2I", "2J");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 3, 20, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "2K", "2L");
 
         log.info("Initialized Round of 32 matches (teams TBD)");
 
-        // Round of 16 (8 matches) - Day 19-20
-        // Winners from Round of 32
-        ZonedDateTime r16Start = knockoutStart.plusDays(5);
-        int r32Start = matchNumber - 16; // First R32 match number
-        createKnockoutMatch(r16Start, "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_16, matchNumber++, "W" + r32Start, "W" + (r32Start + 1));
-        createKnockoutMatch(r16Start.plusHours(3), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 2), "W" + (r32Start + 3));
-        createKnockoutMatch(r16Start.plusHours(6), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 4), "W" + (r32Start + 5));
-        createKnockoutMatch(r16Start.plusHours(9), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 6), "W" + (r32Start + 7));
+        // Round of 16: July 4-7 (8 matches)
+        int r32Start = matchNumber - 16;
 
-        createKnockoutMatch(r16Start.plusDays(1), "Levi's Stadium", "Santa Clara", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 8), "W" + (r32Start + 9));
-        createKnockoutMatch(r16Start.plusDays(1).plusHours(3), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 10), "W" + (r32Start + 11));
-        createKnockoutMatch(r16Start.plusDays(1).plusHours(6), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 12), "W" + (r32Start + 13));
-        createKnockoutMatch(r16Start.plusDays(1).plusHours(9), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 14), "W" + (r32Start + 15));
+        // July 4 - Round of 16 Day 1 (US Independence Day)
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 4, 13, 0, 0, 0, et), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_16, matchNumber++, "W" + r32Start, "W" + (r32Start + 1));
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 4, 17, 0, 0, 0, et), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 2), "W" + (r32Start + 3));
+
+        // July 5 - Round of 16 Day 2
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 5, 13, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 4), "W" + (r32Start + 5));
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 5, 17, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 6), "W" + (r32Start + 7));
+
+        // July 6 - Round of 16 Day 3
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 6, 13, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 8), "W" + (r32Start + 9));
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 6, 17, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 10), "W" + (r32Start + 11));
+
+        // July 7 - Round of 16 Day 4
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 7, 13, 0, 0, 0, et), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 12), "W" + (r32Start + 13));
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 7, 17, 0, 0, 0, et), "Levi's Stadium", "San Francisco Bay Area", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 14), "W" + (r32Start + 15));
 
         log.info("Initialized Round of 16 matches (teams TBD)");
 
-        // Quarter-finals (4 matches) - Day 22-23
-        ZonedDateTime qfStart = knockoutStart.plusDays(8);
+        // Quarter-finals: July 9-12 (4 matches)
         int r16StartNum = matchNumber - 8;
-        createKnockoutMatch(qfStart, "MetLife Stadium", "New Jersey", Match.Stage.QUARTERFINAL, matchNumber++, "W" + r16StartNum, "W" + (r16StartNum + 1));
-        createKnockoutMatch(qfStart.plusHours(4), "AT&T Stadium", "Dallas", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 2), "W" + (r16StartNum + 3));
-        createKnockoutMatch(qfStart.plusDays(1), "Hard Rock Stadium", "Miami", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 4), "W" + (r16StartNum + 5));
-        createKnockoutMatch(qfStart.plusDays(1).plusHours(4), "SoFi Stadium", "Los Angeles", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 6), "W" + (r16StartNum + 7));
+
+        // July 9
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 9, 16, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.QUARTERFINAL, matchNumber++, "W" + r16StartNum, "W" + (r16StartNum + 1));
+
+        // July 10
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 10, 16, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 2), "W" + (r16StartNum + 3));
+
+        // July 11
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 11, 16, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 4), "W" + (r16StartNum + 5));
+
+        // July 12
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 12, 16, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 6), "W" + (r16StartNum + 7));
 
         log.info("Initialized Quarter-final matches (teams TBD)");
 
-        // Semi-finals (2 matches) - Day 26-27
-        ZonedDateTime sfStart = knockoutStart.plusDays(12);
+        // Semi-finals: July 14-15 (2 matches)
         int qfStartNum = matchNumber - 4;
-        createKnockoutMatch(sfStart, "MetLife Stadium", "New Jersey", Match.Stage.SEMIFINAL, matchNumber++, "W" + qfStartNum, "W" + (qfStartNum + 1));
-        createKnockoutMatch(sfStart.plusDays(1), "AT&T Stadium", "Dallas", Match.Stage.SEMIFINAL, matchNumber++, "W" + (qfStartNum + 2), "W" + (qfStartNum + 3));
+
+        // July 14
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 14, 17, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.SEMIFINAL, matchNumber++, "W" + qfStartNum, "W" + (qfStartNum + 1));
+
+        // July 15
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 15, 17, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.SEMIFINAL, matchNumber++, "W" + (qfStartNum + 2), "W" + (qfStartNum + 3));
 
         log.info("Initialized Semi-final matches (teams TBD)");
 
-        // Third place playoff - Day 30
-        ZonedDateTime thirdPlaceDate = knockoutStart.plusDays(16);
+        // Third place playoff: July 18
         int sfStartNum = matchNumber - 2;
-        createKnockoutMatch(thirdPlaceDate, "Hard Rock Stadium", "Miami", Match.Stage.THIRD_PLACE, matchNumber++, "L" + sfStartNum, "L" + (sfStartNum + 1));
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 18, 16, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.THIRD_PLACE, matchNumber++, "L" + sfStartNum, "L" + (sfStartNum + 1));
 
         log.info("Initialized Third place match (teams TBD)");
 
-        // Final - Day 31
-        ZonedDateTime finalDate = knockoutStart.plusDays(17);
-        createKnockoutMatch(finalDate, "MetLife Stadium", "New Jersey", Match.Stage.FINAL, matchNumber, "W" + sfStartNum, "W" + (sfStartNum + 1));
+        // Final: July 19
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 19, 16, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.FINAL, matchNumber, "W" + sfStartNum, "W" + (sfStartNum + 1));
 
         log.info("Initialized Final match (teams TBD)");
     }
