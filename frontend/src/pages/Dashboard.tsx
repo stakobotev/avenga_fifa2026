@@ -40,36 +40,53 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
-    try {
-      const [matches, userPredictions, bonusPredsData, userStats] = await Promise.all([
-        matchApi.getUpcoming(),
-        predictionApi.getMyPredictions(),
-        predictionApi.getMyBonusPredictions(),
-        leaderboardApi.getMyStats(),
-      ]);
+    // Run all requests independently — a single failure (e.g. /leaderboard/me) must NOT
+    // hide upcoming matches or bonus predictions, which are fetched from separate endpoints.
+    const [matchesRes, predictionsRes, bonusRes, statsRes] = await Promise.allSettled([
+      matchApi.getUpcoming(),
+      predictionApi.getMyPredictions(),
+      predictionApi.getMyBonusPredictions(),
+      leaderboardApi.getMyStats(),
+    ]);
 
-      setUpcomingMatches(matches.slice(0, 6));
-      setPredictions(new Map(userPredictions.map(p => [p.matchId, p])));
-      setBonusPredictions(bonusPredsData);
-      setStats(userStats);
-
-      // Fetch regional rank if user has a region
-      if (user?.region) {
-        try {
-          const regionalLeaderboard = await leaderboardApi.getByRegion(user.region);
-          const myRegionalEntry = regionalLeaderboard.find(e => e.user?.id === user.id);
-          if (myRegionalEntry) {
-            setRegionalRank(myRegionalEntry.rank);
-          }
-        } catch (e) {
-          console.error('Failed to fetch regional rank:', e);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
-    } finally {
-      setLoading(false);
+    if (matchesRes.status === 'fulfilled') {
+      setUpcomingMatches(matchesRes.value.slice(0, 6));
+    } else {
+      console.error('Failed to fetch upcoming matches:', matchesRes.reason);
     }
+
+    if (predictionsRes.status === 'fulfilled') {
+      setPredictions(new Map(predictionsRes.value.map(p => [p.matchId, p])));
+    } else {
+      console.error('Failed to fetch predictions:', predictionsRes.reason);
+    }
+
+    if (bonusRes.status === 'fulfilled') {
+      setBonusPredictions(bonusRes.value);
+    } else {
+      console.error('Failed to fetch bonus predictions:', bonusRes.reason);
+    }
+
+    if (statsRes.status === 'fulfilled') {
+      setStats(statsRes.value);
+    } else {
+      console.error('Failed to fetch user stats:', statsRes.reason);
+    }
+
+    // Fetch regional rank independently if user has a region
+    if (user?.region) {
+      try {
+        const regionalLeaderboard = await leaderboardApi.getByRegion(user.region);
+        const myRegionalEntry = regionalLeaderboard.find(e => e.user?.id === user.id);
+        if (myRegionalEntry) {
+          setRegionalRank(myRegionalEntry.rank);
+        }
+      } catch (e) {
+        console.error('Failed to fetch regional rank:', e);
+      }
+    }
+
+    setLoading(false);
   };
 
   const bonusCount = bonusPredictions.length;
