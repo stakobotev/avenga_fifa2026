@@ -282,7 +282,7 @@ export default function Help() {
         </div>
 
         <div className="mt-4 text-sm text-gray-500">
-          <p><strong>Regions:</strong> BG & EG, CZ & SK, UA, SEE, WE, ARG, PL, Other</p>
+          <p><strong>Regions:</strong> BG & EG, CZ & SK, PL & MY, SEE, UA, LATAM, Other</p>
         </div>
       </div>
 

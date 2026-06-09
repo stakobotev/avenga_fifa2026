@@ -80,11 +80,10 @@ public class User {
     public enum Region {
         BG_EG("BG & EG"),
         CZ_SK("CZ & SK"),
-        UA("UA"),
+        PL_MY("PL & MY"),
         SEE("SEE"),
-        WE("WE"),
-        ARG("ARG"),
-        PL("PL"),
+        UA("UA"),
+        LATAM("LATAM"),
         OTHER("Other");
 
         private final String displayName;

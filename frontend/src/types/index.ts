@@ -9,16 +9,15 @@ export interface User {
   regionDisplayName?: string;
 }
 
-export type Region = 'BG_EG' | 'CZ_SK' | 'UA' | 'SEE' | 'WE' | 'ARG' | 'PL' | 'OTHER';
+export type Region = 'BG_EG' | 'CZ_SK' | 'PL_MY' | 'SEE' | 'UA' | 'LATAM' | 'OTHER';
 
 export const REGION_DISPLAY_NAMES: Record<string, string> = {
   'BG_EG': 'BG & EG',
   'CZ_SK': 'CZ & SK',
-  'UA': 'UA',
+  'PL_MY': 'PL & MY',
   'SEE': 'SEE',
-  'WE': 'WE',
-  'ARG': 'ARG',
-  'PL': 'PL',
+  'UA': 'UA',
+  'LATAM': 'LATAM',
   'OTHER': 'Other',
 };
 

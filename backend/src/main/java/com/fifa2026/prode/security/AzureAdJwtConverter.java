@@ -131,39 +131,59 @@ public class AzureAdJwtConverter implements Converter<Jwt, AbstractAuthenticatio
 
     private User.Region mapCountryToRegion(String country) {
         return switch (country) {
-            case "BG", "EG" -> User.Region.BG_EG;
-            case "CZ", "SK" -> User.Region.CZ_SK;
-            case "UA" -> User.Region.UA;
-            case "RS", "RO", "HR", "SI", "BA", "ME", "MK", "AL", "XK" -> User.Region.SEE; // Southeast Europe
-            case "DE", "FR", "GB", "UK", "NL", "BE", "AT", "CH", "IT", "ES", "PT" -> User.Region.WE; // Western Europe
-            case "AR" -> User.Region.ARG;
-            case "PL" -> User.Region.PL;
+            case "BG", "EG", "XK" -> User.Region.BG_EG;                            // Bulgaria, Egypt, Kosovo
+            case "CZ", "SK" -> User.Region.CZ_SK;                                  // Czech Republic, Slovakia
+            case "PL", "MY" -> User.Region.PL_MY;                                  // Poland, Malaysia
+            case "MK", "RS", "BA", "MD", "TR", "CH", "US" -> User.Region.SEE;      // North Macedonia, Serbia, Bosnia, Moldova, Turkey, Switzerland, USA
+            case "UA" -> User.Region.UA;                                           // Ukraine
+            case "AR", "BR", "SV", "VE", "UY", "CO" -> User.Region.LATAM;          // Argentina, Brazil, El Salvador, Venezuela, Uruguay, Colombia
+            case "DE", "ES", "SE", "GB", "UK" -> User.Region.OTHER;                // Germany, Spain, Sweden, UK
             default -> User.Region.OTHER;
         };
     }
 
     private User.Region mapOfficeToRegion(String office) {
         // Map office location names to regions
-        if (office.contains("SOFIA") || office.contains("BULGARIA") || office.contains("CAIRO") || office.contains("EGYPT")) {
+        if (office.contains("SOFIA") || office.contains("BULGARIA")
+                || office.contains("CAIRO") || office.contains("EGYPT")
+                || office.contains("PRISTINA") || office.contains("KOSOVO")) {
             return User.Region.BG_EG;
         }
-        if (office.contains("PRAGUE") || office.contains("CZECH") || office.contains("BRATISLAVA") || office.contains("SLOVAKIA")) {
+        if (office.contains("PRAGUE") || office.contains("CZECH")
+                || office.contains("BRATISLAVA") || office.contains("SLOVAKIA")) {
             return User.Region.CZ_SK;
         }
-        if (office.contains("KYIV") || office.contains("KIEV") || office.contains("UKRAINE") || office.contains("LVIV") || office.contains("KHARKIV")) {
-            return User.Region.UA;
+        if (office.contains("WARSAW") || office.contains("POLAND")
+                || office.contains("KRAKOW") || office.contains("WROCLAW") || office.contains("GDANSK")
+                || office.contains("KUALA LUMPUR") || office.contains("MALAYSIA")) {
+            return User.Region.PL_MY;
         }
-        if (office.contains("BELGRADE") || office.contains("SERBIA") || office.contains("BUCHAREST") || office.contains("ROMANIA") || office.contains("ZAGREB") || office.contains("CROATIA")) {
+        if (office.contains("SKOPJE") || office.contains("MACEDONIA")
+                || office.contains("BELGRADE") || office.contains("SERBIA")
+                || office.contains("SARAJEVO") || office.contains("BOSNIA")
+                || office.contains("CHISINAU") || office.contains("MOLDOVA")
+                || office.contains("ISTANBUL") || office.contains("ANKARA") || office.contains("TURKEY")
+                || office.contains("ZURICH") || office.contains("GENEVA") || office.contains("BERN") || office.contains("SWITZERLAND")
+                || office.contains("USA") || office.contains("UNITED STATES") || office.contains("NEW YORK") || office.contains("CHICAGO") || office.contains("ATLANTA")) {
             return User.Region.SEE;
         }
-        if (office.contains("BERLIN") || office.contains("GERMANY") || office.contains("MUNICH") || office.contains("FRANKFURT") || office.contains("LONDON") || office.contains("PARIS") || office.contains("AMSTERDAM")) {
-            return User.Region.WE;
+        if (office.contains("KYIV") || office.contains("KIEV") || office.contains("UKRAINE")
+                || office.contains("LVIV") || office.contains("KHARKIV")) {
+            return User.Region.UA;
         }
-        if (office.contains("BUENOS") || office.contains("ARGENTINA")) {
-            return User.Region.ARG;
+        if (office.contains("BUENOS") || office.contains("ARGENTINA")
+                || office.contains("SAO PAULO") || office.contains("RIO") || office.contains("BRAZIL") || office.contains("BRASIL")
+                || office.contains("SAN SALVADOR") || office.contains("EL SALVADOR")
+                || office.contains("CARACAS") || office.contains("VENEZUELA")
+                || office.contains("MONTEVIDEO") || office.contains("URUGUAY")
+                || office.contains("BOGOTA") || office.contains("COLOMBIA")) {
+            return User.Region.LATAM;
         }
-        if (office.contains("WARSAW") || office.contains("POLAND") || office.contains("KRAKOW") || office.contains("WROCLAW") || office.contains("GDANSK")) {
-            return User.Region.PL;
+        if (office.contains("BERLIN") || office.contains("GERMANY") || office.contains("MUNICH") || office.contains("FRANKFURT")
+                || office.contains("MADRID") || office.contains("BARCELONA") || office.contains("SPAIN")
+                || office.contains("STOCKHOLM") || office.contains("SWEDEN")
+                || office.contains("LONDON") || office.contains("MANCHESTER") || office.contains("UK") || office.contains("UNITED KINGDOM")) {
+            return User.Region.OTHER;
         }
         return User.Region.OTHER;
     }

@@ -6,7 +6,7 @@ import { REGION_DISPLAY_NAMES } from '../types';
 import { useAuthStore } from '../store/authStore';
 import clsx from 'clsx';
 
-const REGIONS = ['BG_EG', 'CZ_SK', 'UA', 'SEE', 'WE', 'ARG', 'PL', 'OTHER'];
+const REGIONS = ['BG_EG', 'CZ_SK', 'PL_MY', 'SEE', 'UA', 'LATAM', 'OTHER'];
 
 export default function Leaderboard() {
   const { user } = useAuthStore();

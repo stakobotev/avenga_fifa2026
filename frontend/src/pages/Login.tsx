@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/authStore';
 import { REGION_DISPLAY_NAMES } from '../types';
 import AvengaLogo from '../components/AvengaLogo';
 
-const REGIONS = ['BG_EG', 'CZ_SK', 'UA', 'SEE', 'WE', 'ARG', 'PL', 'OTHER'];
+const REGIONS = ['BG_EG', 'CZ_SK', 'PL_MY', 'SEE', 'UA', 'LATAM', 'OTHER'];
 
 export default function Login() {
   const navigate = useNavigate();
