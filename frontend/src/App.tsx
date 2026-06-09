@@ -16,6 +16,7 @@ import LeagueDetail from './pages/LeagueDetail';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import BonusPredictions from './pages/BonusPredictions';
+import MyPredictions from './pages/MyPredictions';
 import Help from './pages/Help';
 
 const isDev = isDevMode();
@@ -137,6 +138,7 @@ export default function App() {
           <Route path="/matches" element={<Matches />} />
           <Route path="/knockout" element={<Knockout />} />
           <Route path="/bonus" element={<BonusPredictions />} />
+          <Route path="/my-predictions" element={<MyPredictions />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/leagues" element={<Leagues />} />
           <Route path="/leagues/:id" element={<LeagueDetail />} />

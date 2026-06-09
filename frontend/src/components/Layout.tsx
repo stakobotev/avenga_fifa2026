@@ -2,7 +2,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { useAuthStore } from '../store/authStore';
 import { isDevMode, devAuthApi } from '../config/devAuth';
-import { Home, Calendar, BarChart2, LogOut, User, Menu, X, Settings, Trophy, GitBranch, HelpCircle } from 'lucide-react';
+import { Home, Calendar, BarChart2, LogOut, User, Menu, X, Settings, Trophy, GitBranch, HelpCircle, ListChecks } from 'lucide-react';
 import { useState } from 'react';
 import AvengaLogo from './AvengaLogo';
 
@@ -35,6 +35,7 @@ export default function Layout() {
     { name: 'Matches', href: '/matches', icon: Calendar },
     { name: 'Knockout', href: '/knockout', icon: GitBranch },
     { name: 'Bonus', href: '/bonus', icon: Trophy },
+    { name: 'My Predictions', href: '/my-predictions', icon: ListChecks },
     { name: 'Leaderboard', href: '/leaderboard', icon: BarChart2 },
     { name: 'Help', href: '/help', icon: HelpCircle },
     ...(isAdmin ? [{ name: 'Admin', href: '/admin', icon: Settings }] : []),
