@@ -47,11 +47,6 @@ public class BonusPrediction {
         scored = false;
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
     public enum BonusType {
         CHAMPION,
         RUNNER_UP,

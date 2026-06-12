@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,14 +61,18 @@ public class PredictionService {
             throw new RuntimeException("Advancing team prediction is required for knockout matches");
         }
 
-        Prediction prediction = predictionRepository.findByUserAndMatch(user, match)
-                .orElse(new Prediction());
+        Optional<Prediction> existing = predictionRepository.findByUserAndMatch(user, match);
+        Prediction prediction = existing.orElseGet(Prediction::new);
 
         prediction.setUser(user);
         prediction.setMatch(match);
         prediction.setPredictedHomeScore(request.getPredictedHomeScore());
         prediction.setPredictedAwayScore(request.getPredictedAwayScore());
         prediction.setPredictedAdvancingTeam(advancingTeam);
+
+        if (existing.isPresent()) {
+            prediction.setUpdatedAt(LocalDateTime.now());
+        }
 
         prediction = predictionRepository.save(prediction);
 
@@ -120,13 +126,17 @@ public class PredictionService {
                     .orElseThrow(() -> new RuntimeException("Team not found"));
         }
 
-        BonusPrediction prediction = bonusPredictionRepository.findByUserAndPredictionType(user, type)
-                .orElse(new BonusPrediction());
+        Optional<BonusPrediction> existing = bonusPredictionRepository.findByUserAndPredictionType(user, type);
+        BonusPrediction prediction = existing.orElseGet(BonusPrediction::new);
 
         prediction.setUser(user);
         prediction.setPredictionType(type);
         prediction.setSelectedTeam(selectedTeam);
         prediction.setSelectedPlayerName(request.getSelectedPlayerName());
+
+        if (existing.isPresent()) {
+            prediction.setUpdatedAt(LocalDateTime.now());
+        }
 
         prediction = bonusPredictionRepository.save(prediction);
 

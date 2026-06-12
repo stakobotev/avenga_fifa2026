@@ -50,9 +50,4 @@ public class Prediction {
         createdAt = LocalDateTime.now();
         scored = false;
     }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }
