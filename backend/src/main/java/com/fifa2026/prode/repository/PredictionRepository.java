@@ -23,6 +23,14 @@ public interface PredictionRepository extends JpaRepository<Prediction, Long> {
     @Query("SELECT p FROM Prediction p WHERE p.match = :match AND p.scored = false")
     List<Prediction> findUnscoredPredictionsForMatch(@Param("match") Match match);
 
+    @Query("SELECT p FROM Prediction p " +
+           "JOIN FETCH p.user " +
+           "JOIN FETCH p.match m " +
+           "LEFT JOIN FETCH m.homeTeam " +
+           "LEFT JOIN FETCH m.awayTeam " +
+           "WHERE m.status = 'FINISHED'")
+    List<Prediction> findAllForFinishedMatches();
+
     @Query("SELECT COALESCE(SUM(p.pointsEarned), 0) FROM Prediction p WHERE p.user = :user")
     Integer getTotalPointsForUser(@Param("user") User user);
 

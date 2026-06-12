@@ -129,3 +129,57 @@ export interface LeagueRequest {
   isPrivate?: boolean;
   prizes?: string;
 }
+
+// --- Statistics (scoped to finished matches) ---
+
+export interface StatPlayer {
+  name: string;
+  count: number;
+  pct: number;
+}
+
+export interface StatTeam {
+  code: string;
+  name: string;
+  flagUrl?: string;
+  count: number;
+  pct: number;
+}
+
+export interface StatRegion {
+  region: string;
+  regionDisplayName: string;
+  usersWithPredictions: number;
+  totalPredictions: number;
+  exactScore: number;
+  onlyWinner: number;
+  sharePct: number;
+}
+
+export interface StatMatch {
+  matchNumber: number;
+  stage: string;
+  homeTeam?: Team;
+  awayTeam?: Team;
+  homeScore: number;
+  awayScore: number;
+  predictions: number;
+  exactScore: number;
+  exactPct: number;
+  correctWinner: number;
+  correctWinnerPct: number;
+}
+
+export interface StatisticsOverview {
+  totalUsers: number;
+  totalPredictions: number;
+  exactScore: number;
+  onlyWinner: number;
+  topScorers: StatPlayer[];
+  champion: StatTeam[];
+  runnerUp: StatTeam[];
+  thirdPlace: StatTeam[];
+  regions: StatRegion[];
+  regionsTotal: StatRegion;
+  matches: StatMatch[];
+}

@@ -691,12 +691,6 @@ export default function BonusPredictions() {
                       <p className="text-sm text-gray-500">{selectedTeam.code}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setExpandedType(type)}
-                    className="btn btn-secondary"
-                  >
-                    Change
-                  </button>
                 </div>
               ) : (
                 <div>
@@ -822,12 +816,6 @@ export default function BonusPredictions() {
                   );
                 })()}
               </div>
-              <button
-                onClick={() => setShowPlayerDropdown(true)}
-                className="btn btn-secondary"
-              >
-                Change
-              </button>
             </div>
           ) : (
             <div className="relative">

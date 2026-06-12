@@ -10,7 +10,8 @@ import type {
   LeaderboardEntry,
   PredictionRequest,
   BonusPredictionRequest,
-  LeagueRequest
+  LeagueRequest,
+  StatisticsOverview
 } from '../types';
 
 const api = axios.create({
@@ -210,6 +211,14 @@ export const leaderboardApi = {
   },
   getMyStats: async (): Promise<LeaderboardEntry> => {
     const { data } = await api.get('/leaderboard/me');
+    return data;
+  },
+};
+
+// Statistics (predictions overview, scoped to finished matches)
+export const statisticsApi = {
+  getOverview: async (): Promise<StatisticsOverview> => {
+    const { data } = await api.get('/statistics/overview');
     return data;
   },
 };
