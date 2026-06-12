@@ -2,14 +2,11 @@ package com.fifa2026.prode.config;
 
 import com.fifa2026.prode.entity.Match;
 import com.fifa2026.prode.entity.Team;
-import com.fifa2026.prode.entity.User;
 import com.fifa2026.prode.repository.MatchRepository;
 import com.fifa2026.prode.repository.TeamRepository;
-import com.fifa2026.prode.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -28,8 +25,6 @@ public class DataInitializer implements CommandLineRunner {
 
     private final TeamRepository teamRepository;
     private final MatchRepository matchRepository;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
@@ -51,22 +46,6 @@ public class DataInitializer implements CommandLineRunner {
                         .orElse(72);
                 initializeKnockoutMatches(teamsByCode, lastMatchNumber + 1);
             }
-        }
-        initializeAdminUser();
-    }
-
-    private void initializeAdminUser() {
-        if (!userRepository.existsByUsername("admin")) {
-            User admin = User.builder()
-                    .username("admin")
-                    .email("admin@prode2026.com")
-                    .password(passwordEncoder.encode("admin123"))
-                    .displayName("Administrator")
-                    .role(User.Role.ADMIN)
-                    .authProvider(User.AuthProvider.LOCAL)
-                    .build();
-            userRepository.save(admin);
-            log.info("Admin user created: admin / admin123");
         }
     }
 
