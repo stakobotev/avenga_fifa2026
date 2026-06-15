@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { isDevMode } from '../config/devAuth';
+import { useAuthStore } from '../store/authStore';
 import type {
   User,
   Team,
@@ -49,12 +50,68 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+// Ensures only ONE session-recovery action runs per page load, even when several
+// requests 401 at once (e.g. the dashboard's parallel calls).
+let recoveringSession = false;
+const REAUTH_GUARD_KEY = 'session_reauth_at';
+
+/**
+ * A 401 means the server no longer considers us authenticated (expired session /
+ * Azure AD token). Reconcile the client: drop the stale identity so the UI can't
+ * keep showing a half-broken "logged in but empty" shell, then recover.
+ */
+async function handleSessionExpired() {
+  if (recoveringSession) return;
+  recoveringSession = true;
+
+  // Clear the persisted user so a page reload can't rehydrate a dead session.
+  useAuthStore.getState().clearUser();
+
+  // Dev mode: session cookie expired — send the user to the login screen.
+  if (isDevMode()) {
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.href = '/login';
+    }
+    return;
+  }
+
+  // Prod mode: Azure AD token expired and silent refresh failed. Re-authenticate
+  // interactively; with a live SSO session this is seamless and MSAL returns the
+  // user to the page they were on.
+  try {
+    const { msalInstance, loginRequest } = await import('../config/authConfig');
+    const account = msalInstance.getAllAccounts()[0];
+
+    // Loop guard: if we *just* tried to recover and still got a 401, a plain
+    // re-auth isn't working — fall back to a full logout so they get a clean
+    // sign-in instead of bouncing forever.
+    const lastAttempt = Number(sessionStorage.getItem(REAUTH_GUARD_KEY) || 0);
+    if (lastAttempt && Date.now() - lastAttempt < 15000) {
+      await msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.origin });
+      return;
+    }
+    sessionStorage.setItem(REAUTH_GUARD_KEY, String(Date.now()));
+
+    if (account) {
+      await msalInstance.acquireTokenRedirect({ ...loginRequest, account });
+    } else {
+      await msalInstance.loginRedirect(loginRequest);
+    }
+  } catch (error) {
+    console.error('Session recovery failed:', error);
+    recoveringSession = false; // allow another attempt on the next 401
+  }
+}
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // A successful authenticated call means any prior recovery worked — reset the guard.
+    sessionStorage.removeItem(REAUTH_GUARD_KEY);
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
-      // Token invalid/expired - MSAL will handle re-authentication
-      console.error('Unauthorized - token may be expired');
+      handleSessionExpired();
     }
     return Promise.reject(error);
   }
