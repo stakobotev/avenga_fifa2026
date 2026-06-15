@@ -7,7 +7,6 @@ import com.fifa2026.prode.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -18,7 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Component
+// NOTE: @Component intentionally removed so this initializer is NOT registered as a
+// Spring bean and never runs. Database is already fully seeded; re-enabling this could
+// overwrite/duplicate data. To re-enable for a fresh DB, restore the @Component annotation.
 @RequiredArgsConstructor
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
