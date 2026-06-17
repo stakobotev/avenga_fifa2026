@@ -175,15 +175,28 @@ export default function MatchCard({ match, prediction: initialPrediction, onPred
         {/* Score / Prediction Input */}
         <div className="flex items-center space-x-2 px-2">
           {match.status === 'FINISHED' ? (
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold">{match.homeScore}</span>
-              <span className="text-gray-400">-</span>
-              <span className="text-2xl font-bold">{match.awayScore}</span>
-              {match.homePenaltyScore !== null && match.awayPenaltyScore !== null && (
-                <span className="text-sm text-gray-500">
-                  ({match.homePenaltyScore}-{match.awayPenaltyScore} pen)
-                </span>
+            <div className="flex flex-col items-center">
+              {/* User's prediction (main figure) */}
+              {prediction ? (
+                <>
+                  <span className="text-[10px] uppercase tracking-wide text-gray-400">Your pick</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl font-bold text-avenga-red">{prediction.predictedHomeScore}</span>
+                    <span className="text-gray-400">-</span>
+                    <span className="text-2xl font-bold text-avenga-red">{prediction.predictedAwayScore}</span>
+                  </div>
+                </>
+              ) : (
+                <span className="text-sm text-gray-400">No prediction</span>
               )}
+              {/* Actual final score, below the prediction */}
+              <div className="mt-1 text-xs text-gray-500 whitespace-nowrap">
+                Final{' '}
+                <span className="font-semibold text-gray-700">{match.homeScore}–{match.awayScore}</span>
+                {match.homePenaltyScore != null && match.awayPenaltyScore != null && (
+                  <span> ({match.homePenaltyScore}-{match.awayPenaltyScore} pen)</span>
+                )}
+              </div>
             </div>
           ) : canPredict ? (
             <div className="flex items-center space-x-2">
