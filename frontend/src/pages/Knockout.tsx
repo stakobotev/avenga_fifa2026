@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Clock, Calendar } from 'lucide-react';
-import { matchApi } from '../services/api';
-import type { Match } from '../types';
+import { Trophy, Clock, Calendar, Check, X } from 'lucide-react';
+import { matchApi, predictionApi } from '../services/api';
+import MatchCard from '../components/MatchCard';
+import type { Match, Prediction } from '../types';
 import clsx from 'clsx';
 
 // Map FIFA 3-letter codes to ISO 2-letter codes for flag CDN
@@ -60,15 +61,35 @@ const KNOCKOUT_STAGES = [
 
 export default function Knockout() {
   const [matches, setMatches] = useState<Match[]>([]);
+  const [predictions, setPredictions] = useState<Map<number, Prediction>>(new Map());
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [countdowns, setCountdowns] = useState<Record<string, CountdownTime | null>>({});
 
   useEffect(() => {
-    matchApi.getAll().then((allMatches) => {
-      const knockoutMatches = allMatches.filter(m => m.stage !== 'GROUP');
-      setMatches(knockoutMatches);
+    // Load the bracket and the user's predictions independently so one failing
+    // doesn't blank the other.
+    Promise.allSettled([
+      matchApi.getAll(),
+      predictionApi.getMyPredictions(),
+    ]).then(([matchesRes, predsRes]) => {
+      if (matchesRes.status === 'fulfilled') {
+        setMatches(matchesRes.value.filter(m => m.stage !== 'GROUP'));
+      }
+      if (predsRes.status === 'fulfilled') {
+        setPredictions(new Map(predsRes.value.map(p => [p.matchId, p])));
+      }
     }).finally(() => setLoading(false));
   }, []);
+
+  const refreshPredictions = async () => {
+    try {
+      const preds = await predictionApi.getMyPredictions();
+      setPredictions(new Map(preds.map(p => [p.matchId, p])));
+    } catch {
+      // keep existing predictions on failure
+    }
+  };
 
   useEffect(() => {
     const updateCountdowns = () => {
@@ -130,6 +151,9 @@ export default function Knockout() {
         </div>
         <p className="text-purple-200">
           The road to the World Cup 2026 Final
+        </p>
+        <p className="mt-2 text-sm text-purple-300">
+          Click any match with confirmed teams to predict the score and who advances.
         </p>
       </div>
 
@@ -198,13 +222,18 @@ export default function Knockout() {
                 stage.key === 'SEMIFINAL' ? 'grid-cols-1 md:grid-cols-2' :
                 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
               )}>
-                {stageMatches.map((match) => (
+                {stageMatches.map((match) => {
+                  const userPrediction = predictions.get(match.id);
+                  const clickable = match.teamsConfirmed;
+                  return (
                   <div
                     key={match.id}
+                    onClick={() => clickable && setSelectedMatch(match)}
                     className={clsx(
                       'border rounded-xl p-4',
                       match.status === 'FINISHED' ? 'bg-gray-50' : 'bg-white',
-                      stage.key === 'FINAL' && 'border-yellow-300 border-2'
+                      stage.key === 'FINAL' && 'border-yellow-300 border-2',
+                      clickable && 'cursor-pointer hover:shadow-md hover:border-purple-300 transition-all'
                     )}
                   >
                     {/* Match Date/Time */}
@@ -274,8 +303,25 @@ export default function Knockout() {
                     <div className="text-center text-xs text-gray-400 mt-3">
                       {match.venue}
                     </div>
+
+                    {/* Prediction status / call to action */}
+                    {clickable && (
+                      <div className="mt-3 border-t pt-2 text-center text-xs">
+                        {userPrediction ? (
+                          <span className="inline-flex items-center justify-center gap-1 font-medium text-green-600">
+                            <Check className="h-3.5 w-3.5" />
+                            Your pick: {userPrediction.predictedHomeScore}–{userPrediction.predictedAwayScore}
+                          </span>
+                        ) : match.locked ? (
+                          <span className="text-gray-400">No prediction</span>
+                        ) : (
+                          <span className="font-medium text-avenga-red">Click to predict →</span>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
@@ -286,6 +332,31 @@ export default function Knockout() {
           </div>
         );
       })}
+
+      {/* Prediction modal — reuses the same MatchCard used on the Matches page */}
+      {selectedMatch && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setSelectedMatch(null)}
+        >
+          <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-2 flex justify-end">
+              <button
+                onClick={() => setSelectedMatch(null)}
+                className="rounded-full p-1 text-white hover:bg-white/10"
+                aria-label="Close"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <MatchCard
+              match={selectedMatch}
+              prediction={predictions.get(selectedMatch.id) || null}
+              onPredictionSaved={refreshPredictions}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
