@@ -2,6 +2,7 @@ package com.fifa2026.prode.controller;
 
 import com.fifa2026.prode.dto.MatchDTO;
 import com.fifa2026.prode.dto.MatchResultRequest;
+import com.fifa2026.prode.dto.MatchTeamsRequest;
 import com.fifa2026.prode.scheduler.MatchSyncScheduler;
 import com.fifa2026.prode.service.FootballDataApiService;
 import com.fifa2026.prode.service.MatchService;
@@ -91,6 +92,15 @@ public class MatchController {
             newDate = LocalDateTime.parse(dateStr).toInstant(ZoneOffset.UTC);
         }
         return ResponseEntity.ok(matchService.updateMatchDate(id, newDate));
+    }
+
+    @PutMapping("/{id}/teams")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MatchDTO> updateMatchTeams(
+            @PathVariable Long id,
+            @RequestBody MatchTeamsRequest request) {
+        return ResponseEntity.ok(
+                matchService.updateMatchTeams(id, request.getHomeTeamId(), request.getAwayTeamId()));
     }
 
     @PostMapping("/{id}/reset")

@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Calendar, Trophy, RotateCcw, Clock, Check, AlertCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { matchApi, adminApi, type SyncStatus } from '../services/api';
-import type { Match } from '../types';
+import { matchApi, adminApi, teamApi, type SyncStatus } from '../services/api';
+import type { Match, Team } from '../types';
 import clsx from 'clsx';
 
 export default function Admin() {
   const { user } = useAuthStore();
   const [matches, setMatches] = useState<Match[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'scheduled' | 'finished'>('all');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -23,6 +24,7 @@ export default function Admin() {
 
   useEffect(() => {
     fetchMatches();
+    fetchTeams();
     fetchSyncStatus();
   }, []);
 
@@ -34,6 +36,16 @@ export default function Admin() {
       console.error('Failed to fetch matches:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      const data = await teamApi.getAll();
+      // Sort alphabetically for easier scanning in the dropdowns.
+      setTeams([...data].sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (error) {
+      console.error('Failed to fetch teams:', error);
     }
   };
 
@@ -90,6 +102,20 @@ export default function Admin() {
       showMessage('success', `Result set: ${homeScore} - ${awayScore}`);
     } catch (error) {
       showMessage('error', 'Failed to set result');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSetTeams = async (matchId: number, homeTeamId?: number, awayTeamId?: number) => {
+    setActionLoading(matchId);
+    try {
+      await adminApi.updateMatchTeams(matchId, { homeTeamId, awayTeamId });
+      await fetchMatches();
+      showMessage('success', 'Teams updated');
+    } catch (error) {
+      const e = error as { response?: { data?: { message?: string } } };
+      showMessage('error', e.response?.data?.message || 'Failed to update teams');
     } finally {
       setActionLoading(null);
     }
@@ -258,9 +284,11 @@ export default function Admin() {
           <MatchAdminCard
             key={match.id}
             match={match}
+            teams={teams}
             loading={actionLoading === match.id}
             onSetDate={(hours) => handleSetMatchDate(match.id, hours)}
             onSetResult={(home, away) => handleSetResult(match.id, home, away)}
+            onSetTeams={(homeTeamId, awayTeamId) => handleSetTeams(match.id, homeTeamId, awayTeamId)}
             onReset={() => handleResetMatch(match.id)}
           />
         ))}
@@ -277,19 +305,24 @@ export default function Admin() {
 
 interface MatchAdminCardProps {
   match: Match;
+  teams: Team[];
   loading: boolean;
   onSetDate: (hoursFromNow: number) => void;
   onSetResult: (homeScore: number, awayScore: number) => void;
+  onSetTeams: (homeTeamId?: number, awayTeamId?: number) => void;
   onReset: () => void;
 }
 
-function MatchAdminCard({ match, loading, onSetDate, onSetResult, onReset }: MatchAdminCardProps) {
+function MatchAdminCard({ match, teams, loading, onSetDate, onSetResult, onSetTeams, onReset }: MatchAdminCardProps) {
   const [homeScore, setHomeScore] = useState(match.homeScore?.toString() || '');
   const [awayScore, setAwayScore] = useState(match.awayScore?.toString() || '');
+  const [homeTeamId, setHomeTeamId] = useState(match.homeTeam?.id?.toString() || '');
+  const [awayTeamId, setAwayTeamId] = useState(match.awayTeam?.id?.toString() || '');
 
   const isFinished = match.status === 'FINISHED';
   const isPast = new Date(match.matchDate) < new Date();
   const teamsConfirmed = match.teamsConfirmed;
+  const isKnockout = match.stage !== 'GROUP';
 
   return (
     <div className={clsx(
@@ -410,6 +443,57 @@ function MatchAdminCard({ match, loading, onSetDate, onSetResult, onReset }: Mat
           </button>
         )}
       </div>
+
+      {/* Knockout team assignment — resolve bracket placeholders to real teams */}
+      {isKnockout && !isFinished && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-col">
+              <label className="text-xs font-medium text-gray-500 mb-1">Home Team</label>
+              <select
+                value={homeTeamId}
+                onChange={(e) => setHomeTeamId(e.target.value)}
+                className="h-9 border rounded text-sm px-2 min-w-[12rem]"
+              >
+                <option value="">— Select team —</option>
+                {teams.map(t => (
+                  <option key={t.id} value={t.id}>{t.code} — {t.name}</option>
+                ))}
+              </select>
+            </div>
+            <span className="pb-2 text-gray-400">vs</span>
+            <div className="flex flex-col">
+              <label className="text-xs font-medium text-gray-500 mb-1">Away Team</label>
+              <select
+                value={awayTeamId}
+                onChange={(e) => setAwayTeamId(e.target.value)}
+                className="h-9 border rounded text-sm px-2 min-w-[12rem]"
+              >
+                <option value="">— Select team —</option>
+                {teams.map(t => (
+                  <option key={t.id} value={t.id}>{t.code} — {t.name}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={() => onSetTeams(
+                homeTeamId ? Number(homeTeamId) : undefined,
+                awayTeamId ? Number(awayTeamId) : undefined,
+              )}
+              disabled={loading || (!homeTeamId && !awayTeamId)}
+              className="h-9 px-3 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 disabled:opacity-50 flex items-center"
+            >
+              <Check className="h-4 w-4 mr-1" />
+              Set Teams
+            </button>
+            {!teamsConfirmed && (
+              <span className="pb-2 text-xs text-yellow-600">
+                Unassigned: {match.homePlaceholder || 'TBD'} vs {match.awayPlaceholder || 'TBD'}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

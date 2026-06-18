@@ -311,6 +311,13 @@ export const adminApi = {
     const { data } = await api.put(`/matches/${matchId}/date`, { matchDate });
     return data;
   },
+  updateMatchTeams: async (matchId: number, teams: {
+    homeTeamId?: number;
+    awayTeamId?: number;
+  }): Promise<Match> => {
+    const { data } = await api.put(`/matches/${matchId}/teams`, teams);
+    return data;
+  },
   resetMatch: async (matchId: number): Promise<Match> => {
     const { data } = await api.post(`/matches/${matchId}/reset`);
     return data;

@@ -115,6 +115,41 @@ public class MatchService {
     }
 
     @Transactional
+    public MatchDTO updateMatchTeams(Long matchId, Long homeTeamId, Long awayTeamId) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
+
+        if (match.getStage() == Match.Stage.GROUP) {
+            throw new RuntimeException("Cannot change teams for group-stage matches");
+        }
+        if (match.getStatus() == Match.MatchStatus.FINISHED) {
+            throw new RuntimeException("Cannot change teams for a finished match");
+        }
+
+        // PATCH semantics: only the sides provided are updated; a null side is left as-is.
+        Team home = match.getHomeTeam();
+        Team away = match.getAwayTeam();
+
+        if (homeTeamId != null) {
+            home = teamRepository.findById(homeTeamId)
+                    .orElseThrow(() -> new RuntimeException("Home team not found"));
+        }
+        if (awayTeamId != null) {
+            away = teamRepository.findById(awayTeamId)
+                    .orElseThrow(() -> new RuntimeException("Away team not found"));
+        }
+
+        if (home != null && away != null && home.getId().equals(away.getId())) {
+            throw new RuntimeException("Home and away teams must be different");
+        }
+
+        match.setHomeTeam(home);
+        match.setAwayTeam(away);
+        match = matchRepository.save(match);
+        return MatchDTO.fromEntity(match);
+    }
+
+    @Transactional
     public MatchDTO updateMatchDate(Long matchId, Instant newDate) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found"));
