@@ -132,12 +132,25 @@ public class LeagueService {
                 .thenComparingInt(LeaderboardEntryDTO::getCorrectPredictions).reversed()
         );
 
-        // Assign ranks
-        for (int i = 0; i < entries.size(); i++) {
-            entries.get(i).setRank(i + 1);
-        }
+        assignCompetitionRanks(entries);
 
         return entries;
+    }
+
+    /**
+     * Standard competition ("1224") ranking: entries with the same total points share
+     * the same rank, and the next lower total resumes at the absolute position. E.g.
+     * three users on 39 pts are all 30th, and the next user (38 pts) is 33rd.
+     * Assumes {@code entries} is already sorted best-first.
+     */
+    private void assignCompetitionRanks(List<LeaderboardEntryDTO> entries) {
+        for (int i = 0; i < entries.size(); i++) {
+            if (i > 0 && entries.get(i).getTotalPoints() == entries.get(i - 1).getTotalPoints()) {
+                entries.get(i).setRank(entries.get(i - 1).getRank());
+            } else {
+                entries.get(i).setRank(i + 1);
+            }
+        }
     }
 
     public List<UserDTO> getLeagueMembers(Long leagueId) {
