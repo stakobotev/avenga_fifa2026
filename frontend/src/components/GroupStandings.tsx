@@ -1,21 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { Team, Match } from '../types';
 import { teamApi, matchApi } from '../services/api';
+import { computeGroupStandings, type Standing } from '../utils/standings';
 
 interface GroupStandingsProps {
   groupLetter: string;
-}
-
-interface Standing {
-  team: Team;
-  played: number;
-  won: number;
-  drawn: number;
-  lost: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
-  points: number;
 }
 
 export default function GroupStandings({ groupLetter }: GroupStandingsProps) {
@@ -30,63 +18,7 @@ export default function GroupStandings({ groupLetter }: GroupStandingsProps) {
           matchApi.getByGroup(groupLetter),
         ]);
 
-        const standingsMap = new Map<number, Standing>();
-
-        teams.forEach(team => {
-          standingsMap.set(team.id, {
-            team,
-            played: 0,
-            won: 0,
-            drawn: 0,
-            lost: 0,
-            goalsFor: 0,
-            goalsAgainst: 0,
-            goalDifference: 0,
-            points: 0,
-          });
-        });
-
-        matches
-          .filter(m => m.status === 'FINISHED' && m.homeScore !== null && m.awayScore !== null && m.homeTeam && m.awayTeam)
-          .forEach((match: Match) => {
-            const home = standingsMap.get(match.homeTeam!.id)!;
-            const away = standingsMap.get(match.awayTeam!.id)!;
-
-            home.played++;
-            away.played++;
-            home.goalsFor += match.homeScore!;
-            home.goalsAgainst += match.awayScore!;
-            away.goalsFor += match.awayScore!;
-            away.goalsAgainst += match.homeScore!;
-
-            if (match.homeScore! > match.awayScore!) {
-              home.won++;
-              home.points += 3;
-              away.lost++;
-            } else if (match.homeScore! < match.awayScore!) {
-              away.won++;
-              away.points += 3;
-              home.lost++;
-            } else {
-              home.drawn++;
-              away.drawn++;
-              home.points++;
-              away.points++;
-            }
-          });
-
-        const sortedStandings = Array.from(standingsMap.values())
-          .map(s => ({
-            ...s,
-            goalDifference: s.goalsFor - s.goalsAgainst,
-          }))
-          .sort((a, b) => {
-            if (b.points !== a.points) return b.points - a.points;
-            if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-            return b.goalsFor - a.goalsFor;
-          });
-
-        setStandings(sortedStandings);
+        setStandings(computeGroupStandings(teams, matches));
       } catch (error) {
         console.error('Failed to fetch standings:', error);
       } finally {

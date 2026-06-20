@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Calendar, Trophy, RotateCcw, Clock, Check, AlertCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { matchApi, adminApi, teamApi, type SyncStatus } from '../services/api';
 import type { Match, Team } from '../types';
+import { computeGroupStandings } from '../utils/standings';
 import clsx from 'clsx';
 
 export default function Admin() {
@@ -11,7 +12,7 @@ export default function Admin() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'scheduled' | 'finished'>('all');
+  const [filter, setFilter] = useState<'all' | 'scheduled' | 'finished' | 'knockout'>('all');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
@@ -137,8 +138,24 @@ export default function Admin() {
   const filteredMatches = matches.filter(match => {
     if (filter === 'scheduled') return match.status === 'SCHEDULED';
     if (filter === 'finished') return match.status === 'FINISHED';
+    if (filter === 'knockout') return match.stage !== 'GROUP';
     return true;
   });
+
+  // Current 3rd-placed team in each group — the only teams eligible for R32 "3rd" slots.
+  const thirdPlaceTeams = useMemo(() => {
+    const groupLetters = Array.from(
+      new Set(teams.map(t => t.groupLetter).filter((g): g is string => !!g))
+    ).sort();
+    const thirds: Team[] = [];
+    for (const g of groupLetters) {
+      const groupTeams = teams.filter(t => t.groupLetter === g);
+      const groupMatches = matches.filter(m => m.stage === 'GROUP' && m.groupLetter === g);
+      const standings = computeGroupStandings(groupTeams, groupMatches);
+      if (standings.length >= 3) thirds.push(standings[2].team);
+    }
+    return thirds;
+  }, [teams, matches]);
 
   if (loading) {
     return (
@@ -158,7 +175,7 @@ export default function Admin() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
         <div className="flex items-center space-x-2">
-          {(['all', 'scheduled', 'finished'] as const).map(f => (
+          {(['all', 'scheduled', 'finished', 'knockout'] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -285,6 +302,8 @@ export default function Admin() {
             key={match.id}
             match={match}
             teams={teams}
+            allMatches={matches}
+            thirdPlaceTeams={thirdPlaceTeams}
             loading={actionLoading === match.id}
             onSetDate={(hours) => handleSetMatchDate(match.id, hours)}
             onSetResult={(home, away) => handleSetResult(match.id, home, away)}
@@ -303,9 +322,56 @@ export default function Admin() {
   );
 }
 
+/**
+ * Teams that could legitimately fill a knockout slot, based on its placeholder:
+ * - "1A"/"2B"  -> the 4 teams of that group
+ * - "W73"/"L73" -> the two teams currently assigned to match 73
+ * - "3rd"       -> the team currently 3rd in each group (which third advances to
+ *                  which slot is combination-dependent, but it's always one of the
+ *                  current third-placed teams)
+ * - anything else -> fall back to any team
+ */
+function getEligibleTeams(
+  placeholder: string | undefined,
+  allTeams: Team[],
+  allMatches: Match[],
+  thirdPlaceTeams: Team[],
+): Team[] {
+  if (!placeholder) return allTeams;
+
+  const grp = placeholder.match(/^[12]([A-L])$/);
+  if (grp) {
+    return allTeams.filter(t => t.groupLetter === grp[1]);
+  }
+
+  const wl = placeholder.match(/^[WL](\d+)$/i);
+  if (wl) {
+    const src = allMatches.find(m => m.matchNumber === Number(wl[1]));
+    if (!src) return [];
+    return [src.homeTeam, src.awayTeam].filter((t): t is Team => !!t);
+  }
+
+  if (/^3/.test(placeholder)) {
+    return thirdPlaceTeams;
+  }
+
+  return allTeams;
+}
+
+// Keep the currently assigned team selectable even if it falls outside the
+// computed eligible set (avoids the dropdown silently blanking).
+function withCurrent(list: Team[], current?: Team): Team[] {
+  if (current && !list.some(t => t.id === current.id)) {
+    return [current, ...list];
+  }
+  return list;
+}
+
 interface MatchAdminCardProps {
   match: Match;
   teams: Team[];
+  allMatches: Match[];
+  thirdPlaceTeams: Team[];
   loading: boolean;
   onSetDate: (hoursFromNow: number) => void;
   onSetResult: (homeScore: number, awayScore: number) => void;
@@ -313,7 +379,7 @@ interface MatchAdminCardProps {
   onReset: () => void;
 }
 
-function MatchAdminCard({ match, teams, loading, onSetDate, onSetResult, onSetTeams, onReset }: MatchAdminCardProps) {
+function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, onSetDate, onSetResult, onSetTeams, onReset }: MatchAdminCardProps) {
   const [homeScore, setHomeScore] = useState(match.homeScore?.toString() || '');
   const [awayScore, setAwayScore] = useState(match.awayScore?.toString() || '');
   const [homeTeamId, setHomeTeamId] = useState(match.homeTeam?.id?.toString() || '');
@@ -323,6 +389,8 @@ function MatchAdminCard({ match, teams, loading, onSetDate, onSetResult, onSetTe
   const isPast = new Date(match.matchDate) < new Date();
   const teamsConfirmed = match.teamsConfirmed;
   const isKnockout = match.stage !== 'GROUP';
+  const eligibleHome = withCurrent(getEligibleTeams(match.homePlaceholder, teams, allMatches, thirdPlaceTeams), match.homeTeam);
+  const eligibleAway = withCurrent(getEligibleTeams(match.awayPlaceholder, teams, allMatches, thirdPlaceTeams), match.awayTeam);
 
   return (
     <div className={clsx(
@@ -449,31 +517,47 @@ function MatchAdminCard({ match, teams, loading, onSetDate, onSetResult, onSetTe
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-500 mb-1">Home Team</label>
+              <label className="text-xs font-medium text-gray-500 mb-1">
+                Home Team{match.homePlaceholder && <span className="text-gray-400"> ({match.homePlaceholder})</span>}
+              </label>
               <select
                 value={homeTeamId}
                 onChange={(e) => setHomeTeamId(e.target.value)}
-                className="h-9 border rounded text-sm px-2 min-w-[12rem]"
+                disabled={eligibleHome.length === 0}
+                className="h-9 border rounded text-sm px-2 min-w-[12rem] disabled:bg-gray-100"
               >
                 <option value="">— Select team —</option>
-                {teams.map(t => (
+                {eligibleHome.map(t => (
                   <option key={t.id} value={t.id}>{t.code} — {t.name}</option>
                 ))}
               </select>
+              {eligibleHome.length === 0 && (
+                <span className="text-xs text-yellow-600 mt-1">
+                  Resolve match #{match.homePlaceholder?.replace(/^[WL]/i, '')} first
+                </span>
+              )}
             </div>
             <span className="pb-2 text-gray-400">vs</span>
             <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-500 mb-1">Away Team</label>
+              <label className="text-xs font-medium text-gray-500 mb-1">
+                Away Team{match.awayPlaceholder && <span className="text-gray-400"> ({match.awayPlaceholder})</span>}
+              </label>
               <select
                 value={awayTeamId}
                 onChange={(e) => setAwayTeamId(e.target.value)}
-                className="h-9 border rounded text-sm px-2 min-w-[12rem]"
+                disabled={eligibleAway.length === 0}
+                className="h-9 border rounded text-sm px-2 min-w-[12rem] disabled:bg-gray-100"
               >
                 <option value="">— Select team —</option>
-                {teams.map(t => (
+                {eligibleAway.map(t => (
                   <option key={t.id} value={t.id}>{t.code} — {t.name}</option>
                 ))}
               </select>
+              {eligibleAway.length === 0 && (
+                <span className="text-xs text-yellow-600 mt-1">
+                  Resolve match #{match.awayPlaceholder?.replace(/^[WL]/i, '')} first
+                </span>
+              )}
             </div>
             <button
               onClick={() => onSetTeams(
@@ -487,9 +571,7 @@ function MatchAdminCard({ match, teams, loading, onSetDate, onSetResult, onSetTe
               Set Teams
             </button>
             {!teamsConfirmed && (
-              <span className="pb-2 text-xs text-yellow-600">
-                Unassigned: {match.homePlaceholder || 'TBD'} vs {match.awayPlaceholder || 'TBD'}
-              </span>
+              <span className="pb-2 text-xs text-yellow-600">Teams not yet assigned</span>
             )}
           </div>
         </div>
