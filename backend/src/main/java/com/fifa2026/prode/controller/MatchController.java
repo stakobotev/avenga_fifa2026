@@ -1,6 +1,7 @@
 package com.fifa2026.prode.controller;
 
 import com.fifa2026.prode.dto.MatchDTO;
+import com.fifa2026.prode.dto.MatchResultCheckResponse;
 import com.fifa2026.prode.dto.MatchResultRequest;
 import com.fifa2026.prode.dto.MatchTeamsRequest;
 import com.fifa2026.prode.scheduler.MatchSyncScheduler;
@@ -74,6 +75,12 @@ public class MatchController {
             @PathVariable Long id,
             @Valid @RequestBody MatchResultRequest request) {
         return ResponseEntity.ok(matchService.updateMatchResult(id, request));
+    }
+
+    @GetMapping("/{id}/check-result")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MatchResultCheckResponse> checkMatchResult(@PathVariable Long id) {
+        return ResponseEntity.ok(matchService.checkExternalResult(id));
     }
 
     @PutMapping("/{id}/date")

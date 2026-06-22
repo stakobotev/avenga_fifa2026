@@ -295,6 +295,19 @@ export interface SyncStatus {
   lastSyncAttempt: string | null;
 }
 
+// Result the external scoring service currently reports for a match,
+// aligned to our home/away orientation (nothing is persisted).
+export interface CheckResultResponse {
+  found: boolean;
+  status?: string;
+  homeScore?: number;
+  awayScore?: number;
+  homePenaltyScore?: number;
+  awayPenaltyScore?: number;
+  winnerTeamId?: number;
+  message?: string;
+}
+
 // Admin
 export const adminApi = {
   updateMatchResult: async (matchId: number, result: {
@@ -305,6 +318,10 @@ export const adminApi = {
     winnerTeamId?: number;
   }): Promise<Match> => {
     const { data } = await api.put(`/matches/${matchId}/result`, result);
+    return data;
+  },
+  checkMatchResult: async (matchId: number): Promise<CheckResultResponse> => {
+    const { data } = await api.get(`/matches/${matchId}/check-result`);
     return data;
   },
   updateMatchDate: async (matchId: number, matchDate: string): Promise<Match> => {

@@ -2,6 +2,7 @@ package com.fifa2026.prode.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fifa2026.prode.dto.MatchResultCheckResponse;
 import com.fifa2026.prode.entity.Match;
 import com.fifa2026.prode.entity.Team;
 import com.fifa2026.prode.repository.MatchRepository;
@@ -320,6 +321,122 @@ public class FootballDataApiService {
         }
 
         return false;
+    }
+
+    /**
+     * Look up the external service's current result for a single local match and
+     * return it aligned to our home/away orientation, WITHOUT persisting anything.
+     * Used by the admin "verify result" screen to compare against the stored value.
+     */
+    public MatchResultCheckResponse checkResultForMatch(Match localMatch) {
+        MatchResultCheckResponse resp = new MatchResultCheckResponse();
+
+        if (!isEnabled()) {
+            resp.setFound(false);
+            resp.setMessage("Football-Data API is not enabled");
+            return resp;
+        }
+
+        ApiMatch apiMatch = fetchApiMatchFor(localMatch);
+        if (apiMatch == null) {
+            resp.setFound(false);
+            resp.setMessage("No matching result found in the external service");
+            return resp;
+        }
+
+        resp.setStatus(apiMatch.getStatus());
+
+        ApiScore score = apiMatch.getScore();
+        if (score == null || score.getFullTime() == null
+                || score.getFullTime().getHome() == null
+                || score.getFullTime().getAway() == null) {
+            resp.setFound(false);
+            resp.setMessage("External service has no final score yet (status: " + apiMatch.getStatus() + ")");
+            return resp;
+        }
+
+        boolean swap = shouldSwapScores(localMatch, apiMatch);
+        int homeScore = swap ? score.getFullTime().getAway() : score.getFullTime().getHome();
+        int awayScore = swap ? score.getFullTime().getHome() : score.getFullTime().getAway();
+        resp.setFound(true);
+        resp.setHomeScore(homeScore);
+        resp.setAwayScore(awayScore);
+
+        if (score.getPenalties() != null
+                && score.getPenalties().getHome() != null
+                && score.getPenalties().getAway() != null) {
+            resp.setHomePenaltyScore(swap ? score.getPenalties().getAway() : score.getPenalties().getHome());
+            resp.setAwayPenaltyScore(swap ? score.getPenalties().getHome() : score.getPenalties().getAway());
+        }
+
+        // Derive the advancing team for knockout matches so the admin form can
+        // pre-select it (score first, then penalties on a draw).
+        if (localMatch.getStage() != Match.Stage.GROUP) {
+            Long homeId = localMatch.getHomeTeam() != null ? localMatch.getHomeTeam().getId() : null;
+            Long awayId = localMatch.getAwayTeam() != null ? localMatch.getAwayTeam().getId() : null;
+            if (homeScore > awayScore) {
+                resp.setWinnerTeamId(homeId);
+            } else if (awayScore > homeScore) {
+                resp.setWinnerTeamId(awayId);
+            } else if (resp.getHomePenaltyScore() != null && resp.getAwayPenaltyScore() != null) {
+                resp.setWinnerTeamId(
+                        resp.getHomePenaltyScore() > resp.getAwayPenaltyScore() ? homeId : awayId);
+            }
+        }
+
+        return resp;
+    }
+
+    /**
+     * Fetch the API match for a local match: by external id when we have one,
+     * otherwise by scanning the competition feed for the same pair of teams
+     * (in either home/away order).
+     */
+    private ApiMatch fetchApiMatchFor(Match localMatch) {
+        if (localMatch.getExternalApiId() != null) {
+            try {
+                ApiMatch m = getWebClient()
+                        .get()
+                        .uri("/matches/{matchId}", localMatch.getExternalApiId())
+                        .retrieve()
+                        .bodyToMono(ApiMatch.class)
+                        .block();
+                if (m != null) {
+                    return m;
+                }
+            } catch (Exception e) {
+                log.warn("check-result: fetch by external id {} failed: {}",
+                        localMatch.getExternalApiId(), e.getMessage());
+            }
+        }
+
+        if (localMatch.getHomeTeam() == null || localMatch.getAwayTeam() == null) {
+            return null;
+        }
+
+        MatchesResponse response = fetchMatches();
+        if (response == null || response.getMatches() == null) {
+            return null;
+        }
+
+        String homeCode = localMatch.getHomeTeam().getCode();
+        String awayCode = localMatch.getAwayTeam().getCode();
+        for (ApiMatch m : response.getMatches()) {
+            if (m.getHomeTeam() == null || m.getAwayTeam() == null) {
+                continue;
+            }
+            String ah = mapApiTeamCode(m.getHomeTeam().getTla());
+            String aa = mapApiTeamCode(m.getAwayTeam().getTla());
+            if (ah == null || aa == null) {
+                continue;
+            }
+            if ((ah.equals(homeCode) && aa.equals(awayCode))
+                    || (ah.equals(awayCode) && aa.equals(homeCode))) {
+                return m;
+            }
+        }
+
+        return null;
     }
 
     // DTO classes for API response

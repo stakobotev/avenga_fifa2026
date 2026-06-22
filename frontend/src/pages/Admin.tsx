@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Calendar, Trophy, RotateCcw, Clock, Check, AlertCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Calendar, Trophy, RotateCcw, Clock, Check, AlertCircle, RefreshCw, Wifi, WifiOff, Search } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { matchApi, adminApi, teamApi, type SyncStatus } from '../services/api';
+import { matchApi, adminApi, teamApi, type SyncStatus, type CheckResultResponse } from '../services/api';
 import type { Match, Team } from '../types';
 import { computeGroupStandings } from '../utils/standings';
 import clsx from 'clsx';
@@ -12,7 +12,7 @@ export default function Admin() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'scheduled' | 'finished' | 'knockout'>('all');
+  const [filter, setFilter] = useState<'all' | 'scheduled' | 'finished' | 'knockout' | 'verify'>('all');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
@@ -143,6 +143,7 @@ export default function Admin() {
   const filteredMatches = matches.filter(match => {
     if (filter === 'scheduled') return match.status === 'SCHEDULED';
     if (filter === 'finished') return match.status === 'FINISHED';
+    if (filter === 'verify') return match.status === 'FINISHED';
     if (filter === 'knockout') return match.stage !== 'GROUP';
     return true;
   });
@@ -180,7 +181,7 @@ export default function Admin() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
         <div className="flex items-center space-x-2">
-          {(['all', 'scheduled', 'finished', 'knockout'] as const).map(f => (
+          {(['all', 'scheduled', 'finished', 'knockout', 'verify'] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -301,20 +302,38 @@ export default function Admin() {
         </ol>
       </div>
 
+      {filter === 'verify' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+          Compare each finished match against the external scoring service. Click
+          "Check result" to fetch what the service reports, then adjust the score if
+          needed and press "Set" to update the result and recalculate points.
+        </div>
+      )}
+
       <div className="space-y-4">
         {filteredMatches.map(match => (
-          <MatchAdminCard
-            key={match.id}
-            match={match}
-            teams={teams}
-            allMatches={matches}
-            thirdPlaceTeams={thirdPlaceTeams}
-            loading={actionLoading === match.id}
-            onSetDate={(hours) => handleSetMatchDate(match.id, hours)}
-            onSetResult={(home, away, extra) => handleSetResult(match.id, home, away, extra)}
-            onSetTeams={(homeTeamId, awayTeamId) => handleSetTeams(match.id, homeTeamId, awayTeamId)}
-            onReset={() => handleResetMatch(match.id)}
-          />
+          filter === 'verify' ? (
+            <VerifyResultCard
+              key={match.id}
+              match={match}
+              loading={actionLoading === match.id}
+              onCheck={() => adminApi.checkMatchResult(match.id)}
+              onSet={(home, away, extra) => handleSetResult(match.id, home, away, extra)}
+            />
+          ) : (
+            <MatchAdminCard
+              key={match.id}
+              match={match}
+              teams={teams}
+              allMatches={matches}
+              thirdPlaceTeams={thirdPlaceTeams}
+              loading={actionLoading === match.id}
+              onSetDate={(hours) => handleSetMatchDate(match.id, hours)}
+              onSetResult={(home, away, extra) => handleSetResult(match.id, home, away, extra)}
+              onSetTeams={(homeTeamId, awayTeamId) => handleSetTeams(match.id, homeTeamId, awayTeamId)}
+              onReset={() => handleResetMatch(match.id)}
+            />
+          )
         ))}
       </div>
 
@@ -654,6 +673,212 @@ function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, on
               <span className="pb-2 text-xs text-yellow-600">Teams not yet assigned</span>
             )}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface VerifyResultCardProps {
+  match: Match;
+  loading: boolean;
+  onCheck: () => Promise<CheckResultResponse>;
+  onSet: (
+    homeScore: number,
+    awayScore: number,
+    extra?: { homePenaltyScore?: number; awayPenaltyScore?: number; winnerTeamId?: number },
+  ) => void;
+}
+
+/**
+ * Compares one finished match against the external scoring service. The admin
+ * clicks "Check result" to fetch what the service reports; the score boxes are
+ * then revealed (pre-filled with the service value, or the current DB value if
+ * the service has nothing) and editable, so a wrong upstream score can be
+ * corrected before pressing "Set".
+ */
+function VerifyResultCard({ match, loading, onCheck, onSet }: VerifyResultCardProps) {
+  const isKnockout = match.stage !== 'GROUP';
+  const [checking, setChecking] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const [result, setResult] = useState<CheckResultResponse | null>(null);
+
+  const [homeScore, setHomeScore] = useState('');
+  const [awayScore, setAwayScore] = useState('');
+  const [homePenalty, setHomePenalty] = useState('');
+  const [awayPenalty, setAwayPenalty] = useState('');
+  const [winnerTeamId, setWinnerTeamId] = useState('');
+
+  const handleCheck = async () => {
+    setChecking(true);
+    try {
+      const res = await onCheck();
+      setResult(res);
+      // Pre-fill from the service result when present, otherwise the current DB value.
+      const h = res.found && res.homeScore != null ? res.homeScore : match.homeScore;
+      const a = res.found && res.awayScore != null ? res.awayScore : match.awayScore;
+      setHomeScore(h != null ? h.toString() : '');
+      setAwayScore(a != null ? a.toString() : '');
+      setHomePenalty(
+        res.homePenaltyScore != null ? res.homePenaltyScore.toString()
+          : match.homePenaltyScore != null ? match.homePenaltyScore.toString() : '');
+      setAwayPenalty(
+        res.awayPenaltyScore != null ? res.awayPenaltyScore.toString()
+          : match.awayPenaltyScore != null ? match.awayPenaltyScore.toString() : '');
+      setWinnerTeamId(
+        res.winnerTeamId != null ? res.winnerTeamId.toString()
+          : match.winnerTeam?.id != null ? match.winnerTeam.id.toString() : '');
+      setChecked(true);
+    } catch {
+      setResult({ found: false, message: 'Failed to reach the external service' });
+      setChecked(true);
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const isDraw =
+    homeScore !== '' && awayScore !== '' && parseInt(homeScore) === parseInt(awayScore);
+  const penaltiesDecisive =
+    homePenalty !== '' && awayPenalty !== '' && parseInt(homePenalty) !== parseInt(awayPenalty);
+  const knockoutNeedsWinner = isKnockout && isDraw && winnerTeamId === '' && !penaltiesDecisive;
+
+  const submit = () => {
+    const extra = isKnockout
+      ? {
+          homePenaltyScore: homePenalty !== '' ? parseInt(homePenalty) : undefined,
+          awayPenaltyScore: awayPenalty !== '' ? parseInt(awayPenalty) : undefined,
+          winnerTeamId: winnerTeamId !== '' ? Number(winnerTeamId) : undefined,
+        }
+      : undefined;
+    onSet(parseInt(homeScore) || 0, parseInt(awayScore) || 0, extra);
+  };
+
+  const dbScore =
+    match.homeScore != null && match.awayScore != null
+      ? `${match.homeScore} - ${match.awayScore}`
+      : '—';
+  const serviceScore =
+    result?.found && result.homeScore != null && result.awayScore != null
+      ? `${result.homeScore} - ${result.awayScore}`
+      : null;
+  const mismatch =
+    serviceScore != null &&
+    (result!.homeScore !== match.homeScore || result!.awayScore !== match.awayScore);
+
+  return (
+    <div className="card border-l-4 border-l-green-500">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="badge badge-secondary bg-gray-100 text-gray-700">
+              {match.stage}{match.groupLetter && ` - Group ${match.groupLetter}`}
+            </span>
+            <span className="text-sm text-gray-500">#{match.matchNumber}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-lg">{match.homeTeam?.code || 'TBD'}</span>
+            <span className="text-gray-400">vs</span>
+            <span className="font-bold text-lg">{match.awayTeam?.code || 'TBD'}</span>
+          </div>
+          <div className="text-sm text-gray-600 mt-1">
+            Current (DB): <span className="font-semibold">{dbScore}</span>
+            {match.homePenaltyScore != null && match.awayPenaltyScore != null && (
+              <span className="text-gray-500"> (pens {match.homePenaltyScore}-{match.awayPenaltyScore})</span>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={handleCheck}
+          disabled={checking || loading}
+          className="px-3 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 disabled:opacity-50 flex items-center self-start"
+        >
+          <Search className={clsx('h-4 w-4 mr-1', checking && 'animate-pulse')} />
+          {checking ? 'Checking...' : 'Check result'}
+        </button>
+      </div>
+
+      {checked && (
+        <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+          {result?.found ? (
+            <div className="text-sm">
+              Service reports: <span className="font-semibold">{serviceScore}</span>
+              {result.homePenaltyScore != null && result.awayPenaltyScore != null && (
+                <span className="text-gray-500"> (pens {result.homePenaltyScore}-{result.awayPenaltyScore})</span>
+              )}
+              {mismatch ? (
+                <span className="ml-2 text-yellow-700 font-medium">differs from DB</span>
+              ) : (
+                <span className="ml-2 text-green-700 font-medium">matches DB</span>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-yellow-700">
+              {result?.message || 'No result returned by the service.'} You can still set the score manually below.
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 w-14">Final</span>
+              <input
+                type="number" min="0" max="20" value={homeScore}
+                onChange={(e) => setHomeScore(e.target.value)}
+                className="w-12 h-8 text-center border rounded text-sm" placeholder="H"
+              />
+              <span className="text-gray-400">-</span>
+              <input
+                type="number" min="0" max="20" value={awayScore}
+                onChange={(e) => setAwayScore(e.target.value)}
+                className="w-12 h-8 text-center border rounded text-sm" placeholder="A"
+              />
+            </div>
+
+            {isKnockout && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 w-10">Pens</span>
+                  <input
+                    type="number" min="0" max="20" value={homePenalty}
+                    onChange={(e) => setHomePenalty(e.target.value)}
+                    className="w-12 h-8 text-center border rounded text-sm" placeholder="H"
+                  />
+                  <span className="text-gray-400">-</span>
+                  <input
+                    type="number" min="0" max="20" value={awayPenalty}
+                    onChange={(e) => setAwayPenalty(e.target.value)}
+                    className="w-12 h-8 text-center border rounded text-sm" placeholder="A"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 w-10">Adv.</span>
+                  <select
+                    value={winnerTeamId}
+                    onChange={(e) => setWinnerTeamId(e.target.value)}
+                    className="h-8 border rounded text-sm px-2"
+                  >
+                    <option value="">Auto (from score)</option>
+                    {match.homeTeam && <option value={match.homeTeam.id}>{match.homeTeam.code}</option>}
+                    {match.awayTeam && <option value={match.awayTeam.id}>{match.awayTeam.code}</option>}
+                  </select>
+                </div>
+              </>
+            )}
+
+            <button
+              onClick={submit}
+              disabled={loading || homeScore === '' || awayScore === '' || knockoutNeedsWinner}
+              className="h-8 px-3 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 flex items-center"
+            >
+              <Check className="h-4 w-4 mr-1" />
+              Set
+            </button>
+          </div>
+
+          {knockoutNeedsWinner && (
+            <span className="text-xs text-yellow-600">Draw — set penalties or pick who advances</span>
+          )}
         </div>
       )}
     </div>

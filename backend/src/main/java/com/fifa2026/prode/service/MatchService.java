@@ -1,6 +1,7 @@
 package com.fifa2026.prode.service;
 
 import com.fifa2026.prode.dto.MatchDTO;
+import com.fifa2026.prode.dto.MatchResultCheckResponse;
 import com.fifa2026.prode.dto.MatchResultRequest;
 import com.fifa2026.prode.entity.Match;
 import com.fifa2026.prode.entity.Team;
@@ -24,6 +25,7 @@ public class MatchService {
     private final MatchRepository matchRepository;
     private final TeamRepository teamRepository;
     private final PredictionService predictionService;
+    private final FootballDataApiService footballDataApiService;
 
     public List<MatchDTO> getAllMatches() {
         return matchRepository.findAllByOrderByMatchDateAsc().stream()
@@ -108,10 +110,24 @@ public class MatchService {
 
         match = matchRepository.save(match);
 
-        // Score predictions for this match
+        // Rescore from scratch. A result can be corrected after predictions were
+        // already scored (e.g. the provider sent a wrong score), so reset first;
+        // otherwise the already-scored predictions keep their stale points and the
+        // leaderboard stays wrong.
+        predictionService.resetPredictionsForMatch(match);
         predictionService.scorePredictionsForMatch(match);
 
         return MatchDTO.fromEntity(match);
+    }
+
+    /**
+     * Ask the external scoring service what it currently reports for this match,
+     * aligned to our orientation. Does not modify any data.
+     */
+    public MatchResultCheckResponse checkExternalResult(Long matchId) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
+        return footballDataApiService.checkResultForMatch(match);
     }
 
     @Transactional
