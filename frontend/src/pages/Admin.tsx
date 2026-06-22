@@ -95,10 +95,15 @@ export default function Admin() {
     }
   };
 
-  const handleSetResult = async (matchId: number, homeScore: number, awayScore: number) => {
+  const handleSetResult = async (
+    matchId: number,
+    homeScore: number,
+    awayScore: number,
+    extra?: { homePenaltyScore?: number; awayPenaltyScore?: number; winnerTeamId?: number },
+  ) => {
     setActionLoading(matchId);
     try {
-      await adminApi.updateMatchResult(matchId, { homeScore, awayScore });
+      await adminApi.updateMatchResult(matchId, { homeScore, awayScore, ...extra });
       await fetchMatches();
       showMessage('success', `Result set: ${homeScore} - ${awayScore}`);
     } catch (error) {
@@ -306,7 +311,7 @@ export default function Admin() {
             thirdPlaceTeams={thirdPlaceTeams}
             loading={actionLoading === match.id}
             onSetDate={(hours) => handleSetMatchDate(match.id, hours)}
-            onSetResult={(home, away) => handleSetResult(match.id, home, away)}
+            onSetResult={(home, away, extra) => handleSetResult(match.id, home, away, extra)}
             onSetTeams={(homeTeamId, awayTeamId) => handleSetTeams(match.id, homeTeamId, awayTeamId)}
             onReset={() => handleResetMatch(match.id)}
           />
@@ -374,7 +379,11 @@ interface MatchAdminCardProps {
   thirdPlaceTeams: Team[];
   loading: boolean;
   onSetDate: (hoursFromNow: number) => void;
-  onSetResult: (homeScore: number, awayScore: number) => void;
+  onSetResult: (
+    homeScore: number,
+    awayScore: number,
+    extra?: { homePenaltyScore?: number; awayPenaltyScore?: number; winnerTeamId?: number },
+  ) => void;
   onSetTeams: (homeTeamId?: number, awayTeamId?: number) => void;
   onReset: () => void;
 }
@@ -382,6 +391,9 @@ interface MatchAdminCardProps {
 function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, onSetDate, onSetResult, onSetTeams, onReset }: MatchAdminCardProps) {
   const [homeScore, setHomeScore] = useState(match.homeScore?.toString() || '');
   const [awayScore, setAwayScore] = useState(match.awayScore?.toString() || '');
+  const [homePenalty, setHomePenalty] = useState(match.homePenaltyScore?.toString() || '');
+  const [awayPenalty, setAwayPenalty] = useState(match.awayPenaltyScore?.toString() || '');
+  const [winnerTeamId, setWinnerTeamId] = useState(match.winnerTeam?.id?.toString() || '');
   const [homeTeamId, setHomeTeamId] = useState(match.homeTeam?.id?.toString() || '');
   const [awayTeamId, setAwayTeamId] = useState(match.awayTeam?.id?.toString() || '');
 
@@ -389,6 +401,23 @@ function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, on
   const isPast = new Date(match.matchDate) < new Date();
   const teamsConfirmed = match.teamsConfirmed;
   const isKnockout = match.stage !== 'GROUP';
+  const isDraw =
+    homeScore !== '' && awayScore !== '' && parseInt(homeScore) === parseInt(awayScore);
+  // A drawn knockout needs a decider: either decisive penalties or an explicit pick.
+  const penaltiesDecisive =
+    homePenalty !== '' && awayPenalty !== '' && parseInt(homePenalty) !== parseInt(awayPenalty);
+  const knockoutNeedsWinner = isKnockout && isDraw && winnerTeamId === '' && !penaltiesDecisive;
+
+  const submitResult = () => {
+    const extra = isKnockout
+      ? {
+          homePenaltyScore: homePenalty !== '' ? parseInt(homePenalty) : undefined,
+          awayPenaltyScore: awayPenalty !== '' ? parseInt(awayPenalty) : undefined,
+          winnerTeamId: winnerTeamId !== '' ? Number(winnerTeamId) : undefined,
+        }
+      : undefined;
+    onSetResult(parseInt(homeScore) || 0, parseInt(awayScore) || 0, extra);
+  };
   const eligibleHome = withCurrent(getEligibleTeams(match.homePlaceholder, teams, allMatches, thirdPlaceTeams), match.homeTeam);
   const eligibleAway = withCurrent(getEligibleTeams(match.awayPlaceholder, teams, allMatches, thirdPlaceTeams), match.awayTeam);
 
@@ -465,34 +494,85 @@ function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, on
         <div className="flex flex-col gap-2">
           <span className="text-xs text-gray-500 font-medium">Set Result:</span>
           {teamsConfirmed ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min="0"
-                max="20"
-                value={homeScore}
-                onChange={(e) => setHomeScore(e.target.value)}
-                className="w-12 h-8 text-center border rounded text-sm"
-                placeholder="H"
-              />
-              <span className="text-gray-400">-</span>
-              <input
-                type="number"
-                min="0"
-                max="20"
-                value={awayScore}
-                onChange={(e) => setAwayScore(e.target.value)}
-                className="w-12 h-8 text-center border rounded text-sm"
-                placeholder="A"
-              />
-              <button
-                onClick={() => onSetResult(parseInt(homeScore) || 0, parseInt(awayScore) || 0)}
-                disabled={loading || !homeScore || !awayScore}
-                className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 flex items-center"
-              >
-                <Trophy className="h-3 w-3 mr-1" />
-                Set
-              </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="20"
+                  value={homeScore}
+                  onChange={(e) => setHomeScore(e.target.value)}
+                  className="w-12 h-8 text-center border rounded text-sm"
+                  placeholder="H"
+                />
+                <span className="text-gray-400">-</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="20"
+                  value={awayScore}
+                  onChange={(e) => setAwayScore(e.target.value)}
+                  className="w-12 h-8 text-center border rounded text-sm"
+                  placeholder="A"
+                />
+                <button
+                  onClick={submitResult}
+                  disabled={loading || !homeScore || !awayScore || knockoutNeedsWinner}
+                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 flex items-center"
+                >
+                  <Trophy className="h-3 w-3 mr-1" />
+                  Set
+                </button>
+              </div>
+
+              {/* Knockout tie-breakers: penalty score and the advancing team. */}
+              {isKnockout && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 w-10">Pens</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="20"
+                      value={homePenalty}
+                      onChange={(e) => setHomePenalty(e.target.value)}
+                      className="w-12 h-8 text-center border rounded text-sm"
+                      placeholder="H"
+                    />
+                    <span className="text-gray-400">-</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="20"
+                      value={awayPenalty}
+                      onChange={(e) => setAwayPenalty(e.target.value)}
+                      className="w-12 h-8 text-center border rounded text-sm"
+                      placeholder="A"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 w-10">Adv.</span>
+                    <select
+                      value={winnerTeamId}
+                      onChange={(e) => setWinnerTeamId(e.target.value)}
+                      className="h-8 border rounded text-sm px-2"
+                    >
+                      <option value="">Auto (from score)</option>
+                      {match.homeTeam && (
+                        <option value={match.homeTeam.id}>{match.homeTeam.code}</option>
+                      )}
+                      {match.awayTeam && (
+                        <option value={match.awayTeam.id}>{match.awayTeam.code}</option>
+                      )}
+                    </select>
+                  </div>
+                  {knockoutNeedsWinner && (
+                    <span className="text-xs text-yellow-600">
+                      Draw — set penalties or pick who advances
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <span className="text-xs text-gray-400 italic">Teams not confirmed</span>
