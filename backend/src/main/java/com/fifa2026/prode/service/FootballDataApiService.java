@@ -153,30 +153,39 @@ public class FootballDataApiService {
             return false;
         }
 
-        Integer homeScore = score.getFullTime().getHome();
-        Integer awayScore = score.getFullTime().getAway();
+        Integer apiHome = score.getFullTime().getHome();
+        Integer apiAway = score.getFullTime().getAway();
 
-        if (homeScore == null || awayScore == null) {
+        if (apiHome == null || apiAway == null) {
             return false;
         }
 
-        log.info("Updating match {} ({} vs {}) with result {}-{}",
+        // Align API scores to our stored home/away orientation (knockout pairings
+        // may be listed with the opposite home side).
+        boolean swap = shouldSwapScores(localMatch, apiMatch);
+        int homeScore = swap ? apiAway : apiHome;
+        int awayScore = swap ? apiHome : apiAway;
+
+        log.info("Updating match {} ({} vs {}) with result {}-{}{}",
                 localMatch.getId(),
                 localMatch.getHomeTeam().getCode(),
                 localMatch.getAwayTeam().getCode(),
-                homeScore, awayScore);
+                homeScore, awayScore,
+                swap ? " (orientation corrected)" : "");
 
         localMatch.setHomeScore(homeScore);
         localMatch.setAwayScore(awayScore);
         localMatch.setStatus(Match.MatchStatus.FINISHED);
         localMatch.setExternalApiId(apiMatch.getId());
 
-        // Handle penalties for knockout matches
+        // Handle penalties for knockout matches (aligned to our orientation)
         if (score.getPenalties() != null &&
             score.getPenalties().getHome() != null &&
             score.getPenalties().getAway() != null) {
-            localMatch.setHomePenaltyScore(score.getPenalties().getHome());
-            localMatch.setAwayPenaltyScore(score.getPenalties().getAway());
+            int penHome = score.getPenalties().getHome();
+            int penAway = score.getPenalties().getAway();
+            localMatch.setHomePenaltyScore(swap ? penAway : penHome);
+            localMatch.setAwayPenaltyScore(swap ? penHome : penAway);
         }
 
         // Determine winner for knockout matches
@@ -232,16 +241,42 @@ public class FootballDataApiService {
             return null;
         }
 
-        // Find match with these teams
-        List<Match> allMatches = matchRepository.findAllByOrderByMatchDateAsc();
-        for (Match match : allMatches) {
-            if (match.getHomeTeam().getId().equals(homeTeam.get().getId()) &&
-                match.getAwayTeam().getId().equals(awayTeam.get().getId())) {
+        Long id1 = homeTeam.get().getId();
+        Long id2 = awayTeam.get().getId();
+
+        // Find match with these two teams. Match in EITHER orientation because
+        // knockout pairings have no fixed home side, and skip matches whose teams
+        // aren't assigned yet (knockout placeholders) to stay null-safe.
+        for (Match match : matchRepository.findAllByOrderByMatchDateAsc()) {
+            if (match.getHomeTeam() == null || match.getAwayTeam() == null) {
+                continue;
+            }
+            Long mh = match.getHomeTeam().getId();
+            Long ma = match.getAwayTeam().getId();
+            if ((mh.equals(id1) && ma.equals(id2)) || (mh.equals(id2) && ma.equals(id1))) {
                 return match;
             }
         }
 
         return null;
+    }
+
+    /**
+     * True when the API lists this match's teams in the opposite home/away order
+     * to how we stored it, so the API scores must be swapped to our orientation.
+     */
+    private boolean shouldSwapScores(Match localMatch, ApiMatch apiMatch) {
+        if (apiMatch.getHomeTeam() == null
+                || localMatch.getHomeTeam() == null
+                || localMatch.getAwayTeam() == null) {
+            return false;
+        }
+        String apiHomeCode = mapApiTeamCode(apiMatch.getHomeTeam().getTla());
+        if (apiHomeCode == null) {
+            return false;
+        }
+        return apiHomeCode.equals(localMatch.getAwayTeam().getCode())
+                && !apiHomeCode.equals(localMatch.getHomeTeam().getCode());
     }
 
     /**
