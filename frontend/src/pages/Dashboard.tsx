@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy, Calendar, Target, TrendingUp, ChevronRight, Award, MapPin } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { matchApi, predictionApi, leaderboardApi } from '../services/api';
+import { matchApi, predictionApi, leaderboardApi, type TopScorer } from '../services/api';
 import type { Match, Prediction, LeaderboardEntry, BonusPrediction } from '../types';
 import { REGION_DISPLAY_NAMES } from '../types';
 import MatchCard from '../components/MatchCard';
@@ -37,16 +37,18 @@ export default function Dashboard() {
   const [bonusPredictions, setBonusPredictions] = useState<BonusPrediction[]>([]);
   const [stats, setStats] = useState<LeaderboardEntry | null>(null);
   const [regionalRank, setRegionalRank] = useState<number | null>(null);
+  const [topScorers, setTopScorers] = useState<TopScorer[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     // Run all requests independently — a single failure (e.g. /leaderboard/me) must NOT
     // hide upcoming matches or bonus predictions, which are fetched from separate endpoints.
-    const [matchesRes, predictionsRes, bonusRes, statsRes] = await Promise.allSettled([
+    const [matchesRes, predictionsRes, bonusRes, statsRes, scorersRes] = await Promise.allSettled([
       matchApi.getUpcoming(),
       predictionApi.getMyPredictions(),
       predictionApi.getMyBonusPredictions(),
       leaderboardApi.getMyStats(),
+      matchApi.getTopScorers(5),
     ]);
 
     if (matchesRes.status === 'fulfilled') {
@@ -71,6 +73,14 @@ export default function Dashboard() {
       setStats(statsRes.value);
     } else {
       console.error('Failed to fetch user stats:', statsRes.reason);
+    }
+
+    // Top scorers come from the external API; if it fails, leave the list empty
+    // so the card simply isn't shown.
+    if (scorersRes.status === 'fulfilled') {
+      setTopScorers(scorersRes.value);
+    } else {
+      console.error('Failed to fetch top scorers:', scorersRes.reason);
     }
 
     // Fetch regional rank independently if user has a region
@@ -277,6 +287,37 @@ export default function Dashboard() {
               {bonusCount < totalBonusTypes ? 'Make Predictions' : 'View Predictions'}
             </Link>
           </div>
+
+          {/* Top Scorers (live from the external API; hidden if unavailable) */}
+          {topScorers.length > 0 && (
+            <div className="card">
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center">
+                <Trophy className="h-5 w-5 mr-2 text-amber-500" />
+                Top Scorers
+              </h3>
+              <div className="space-y-3">
+                {topScorers.map((s, i) => (
+                  <div key={`${s.playerName}-${i}`} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center min-w-0">
+                      <span className="w-5 text-gray-400 font-medium flex-shrink-0">{i + 1}</span>
+                      {s.teamCode && (
+                        <img
+                          src={getFlagUrl(s.teamCode)}
+                          alt={s.teamName || s.teamCode}
+                          className="w-5 h-4 object-contain mx-2 rounded shadow-sm flex-shrink-0"
+                        />
+                      )}
+                      <span className="truncate text-gray-700">{s.playerName}</span>
+                    </div>
+                    <span className="font-bold text-gray-900 ml-2 flex-shrink-0">
+                      {s.goals ?? 0}
+                      <span className="ml-1 text-xs font-normal text-gray-400">goals</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick Links */}
           <div className="card">

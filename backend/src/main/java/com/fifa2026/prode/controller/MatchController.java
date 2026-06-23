@@ -135,8 +135,9 @@ public class MatchController {
         return ResponseEntity.ok(matchSyncScheduler.triggerManualSync());
     }
 
+    // Public read-only data (also shown on the user dashboard). Cached server-side
+    // so multiple viewers don't exhaust the external API's rate limit.
     @GetMapping("/scorers")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<TopScorerDTO>> getTopScorers(
             @RequestParam(defaultValue = "10") int limit) {
         return ResponseEntity.ok(footballDataApiService.fetchTopScorers(limit));

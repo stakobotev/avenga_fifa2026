@@ -179,6 +179,10 @@ export const matchApi = {
     const { data } = await api.get('/matches/upcoming');
     return data;
   },
+  getTopScorers: async (limit = 10): Promise<TopScorer[]> => {
+    const { data } = await api.get('/matches/scorers', { params: { limit } });
+    return data;
+  },
   getToday: async (): Promise<Match[]> => {
     const { data } = await api.get('/matches/today');
     return data;
@@ -372,10 +376,6 @@ export const adminApi = {
   },
   triggerSync: async (): Promise<SyncResult> => {
     const { data } = await api.post('/matches/sync/trigger');
-    return data;
-  },
-  getTopScorers: async (limit = 10): Promise<TopScorer[]> => {
-    const { data } = await api.get('/matches/scorers', { params: { limit } });
     return data;
   },
   awardTopScorer: async (playerName: string): Promise<TopScorerAwardResult> => {

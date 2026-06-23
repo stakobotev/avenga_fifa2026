@@ -441,9 +441,16 @@ public class FootballDataApiService {
         return null;
     }
 
+    // Top scorers are cached briefly: the dashboard shows them to every visitor,
+    // and the free API tier allows only a handful of requests per minute.
+    private static final long SCORERS_CACHE_TTL_MS = 120_000; // 2 minutes
+    private volatile List<TopScorerDTO> cachedScorers;
+    private volatile long cachedScorersAt;
+
     /**
-     * Fetch the competition's current top scorers from the external service.
-     * Returns an empty list when the API is disabled or the call fails.
+     * Fetch the competition's current top scorers from the external service,
+     * served from a short-lived cache. Returns an empty list when the API is
+     * disabled, or when it fails and no cached value is available.
      */
     public List<TopScorerDTO> fetchTopScorers(int limit) {
         if (!isEnabled()) {
@@ -451,42 +458,61 @@ public class FootballDataApiService {
             return new ArrayList<>();
         }
 
-        try {
-            ScorersResponse response = getWebClient()
-                    .get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/competitions/{competitionId}/scorers")
-                            .queryParam("limit", limit)
-                            .build(competitionId))
-                    .retrieve()
-                    .bodyToMono(ScorersResponse.class)
-                    .block();
+        long now = System.currentTimeMillis();
+        List<TopScorerDTO> cache = cachedScorers;
+        if (cache != null && now - cachedScorersAt < SCORERS_CACHE_TTL_MS && cache.size() >= limit) {
+            return topN(cache, limit);
+        }
 
-            List<TopScorerDTO> scorers = new ArrayList<>();
-            if (response == null || response.getScorers() == null) {
-                return scorers;
-            }
-            for (Scorer s : response.getScorers()) {
-                if (s.getPlayer() == null) {
-                    continue;
-                }
-                scorers.add(new TopScorerDTO(
-                        s.getPlayer().getName(),
-                        s.getPlayer().getNationality(),
-                        s.getTeam() != null ? s.getTeam().getName() : null,
-                        s.getTeam() != null ? mapApiTeamCode(s.getTeam().getTla()) : null,
-                        s.getGoals(),
-                        s.getPlayedMatches()));
-            }
-            return scorers;
+        try {
+            // Always fetch at least 10 so one call serves both the dashboard (5)
+            // and the admin panel (10) from the same cache entry.
+            List<TopScorerDTO> fetched = fetchScorersFromApi(Math.max(limit, 10));
+            cachedScorers = fetched;
+            cachedScorersAt = now;
+            return topN(fetched, limit);
         } catch (WebClientResponseException e) {
             log.error("Failed to fetch scorers from Football-Data.org: {} - {}",
                     e.getStatusCode(), e.getResponseBodyAsString());
-            return new ArrayList<>();
         } catch (Exception e) {
             log.error("Error fetching scorers from Football-Data.org", e);
-            return new ArrayList<>();
         }
+        // On failure, serve the last good list if we have one; otherwise empty.
+        return (cache != null && cache.size() >= limit) ? topN(cache, limit) : new ArrayList<>();
+    }
+
+    private List<TopScorerDTO> fetchScorersFromApi(int limit) {
+        ScorersResponse response = getWebClient()
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/competitions/{competitionId}/scorers")
+                        .queryParam("limit", limit)
+                        .build(competitionId))
+                .retrieve()
+                .bodyToMono(ScorersResponse.class)
+                .block();
+
+        List<TopScorerDTO> scorers = new ArrayList<>();
+        if (response == null || response.getScorers() == null) {
+            return scorers;
+        }
+        for (Scorer s : response.getScorers()) {
+            if (s.getPlayer() == null) {
+                continue;
+            }
+            scorers.add(new TopScorerDTO(
+                    s.getPlayer().getName(),
+                    s.getPlayer().getNationality(),
+                    s.getTeam() != null ? s.getTeam().getName() : null,
+                    s.getTeam() != null ? mapApiTeamCode(s.getTeam().getTla()) : null,
+                    s.getGoals(),
+                    s.getPlayedMatches()));
+        }
+        return scorers;
+    }
+
+    private List<TopScorerDTO> topN(List<TopScorerDTO> list, int n) {
+        return new ArrayList<>(list.subList(0, Math.min(n, list.size())));
     }
 
     // DTO classes for API response

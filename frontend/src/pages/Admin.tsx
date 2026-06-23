@@ -907,7 +907,7 @@ function TopScorerPanel() {
     setLoading(true);
     setError(null);
     try {
-      const data = await adminApi.getTopScorers(10);
+      const data = await matchApi.getTopScorers(10);
       setScorers(data);
       if (data.length > 0 && selectedName === '') {
         setSelectedName(data[0].playerName);
