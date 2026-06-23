@@ -4,6 +4,7 @@ import com.fifa2026.prode.dto.MatchDTO;
 import com.fifa2026.prode.dto.MatchResultCheckResponse;
 import com.fifa2026.prode.dto.MatchResultRequest;
 import com.fifa2026.prode.dto.MatchTeamsRequest;
+import com.fifa2026.prode.dto.TopScorerDTO;
 import com.fifa2026.prode.scheduler.MatchSyncScheduler;
 import com.fifa2026.prode.service.FootballDataApiService;
 import com.fifa2026.prode.service.MatchService;
@@ -132,6 +133,13 @@ public class MatchController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<FootballDataApiService.SyncResult> triggerSync() {
         return ResponseEntity.ok(matchSyncScheduler.triggerManualSync());
+    }
+
+    @GetMapping("/scorers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<TopScorerDTO>> getTopScorers(
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(footballDataApiService.fetchTopScorers(limit));
     }
 
     @lombok.Data

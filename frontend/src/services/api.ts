@@ -308,6 +308,24 @@ export interface CheckResultResponse {
   message?: string;
 }
 
+// An entry in the external service's top-scorers ranking.
+export interface TopScorer {
+  playerName: string;
+  nationality?: string;
+  teamName?: string;
+  teamCode?: string;
+  goals?: number;
+  playedMatches?: number;
+}
+
+// Outcome of settling the TOP_SCORER bonus against a chosen player name.
+export interface TopScorerAwardResult {
+  playerName: string;
+  matched: number;
+  total: number;
+  pointsEach: number;
+}
+
 // Admin
 export const adminApi = {
   updateMatchResult: async (matchId: number, result: {
@@ -345,6 +363,14 @@ export const adminApi = {
   },
   triggerSync: async (): Promise<SyncResult> => {
     const { data } = await api.post('/matches/sync/trigger');
+    return data;
+  },
+  getTopScorers: async (limit = 10): Promise<TopScorer[]> => {
+    const { data } = await api.get('/matches/scorers', { params: { limit } });
+    return data;
+  },
+  awardTopScorer: async (playerName: string): Promise<TopScorerAwardResult> => {
+    const { data } = await api.post('/predictions/bonus/award-top-scorer', { playerName });
     return data;
   },
 };

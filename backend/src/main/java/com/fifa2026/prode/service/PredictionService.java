@@ -4,6 +4,7 @@ import com.fifa2026.prode.dto.BonusPredictionDTO;
 import com.fifa2026.prode.dto.BonusPredictionRequest;
 import com.fifa2026.prode.dto.PredictionDTO;
 import com.fifa2026.prode.dto.PredictionRequest;
+import com.fifa2026.prode.dto.TopScorerAwardResult;
 import com.fifa2026.prode.entity.*;
 import com.fifa2026.prode.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -173,5 +174,48 @@ public class PredictionService {
             prediction.setScored(false);
             predictionRepository.save(prediction);
         }
+    }
+
+    /**
+     * Settle the TOP_SCORER bonus against the given winning player name.
+     * Every TOP_SCORER prediction is marked scored; those whose picked player
+     * matches (accent- and case-insensitive) are awarded the bonus points, the
+     * rest get zero. Re-running with a different name simply re-settles, so a
+     * correction is safe. Returns a summary of what was awarded.
+     */
+    @Transactional
+    public TopScorerAwardResult awardTopScorerBonus(String winningPlayerName) {
+        if (winningPlayerName == null || winningPlayerName.isBlank()) {
+            throw new RuntimeException("Winning player name is required");
+        }
+
+        String target = normalizeName(winningPlayerName);
+        int points = scoringService.calculateBonusPoints(BonusPrediction.BonusType.TOP_SCORER);
+
+        List<BonusPrediction> predictions =
+                bonusPredictionRepository.findByPredictionType(BonusPrediction.BonusType.TOP_SCORER);
+
+        int matched = 0;
+        for (BonusPrediction bp : predictions) {
+            boolean isMatch = target.equals(normalizeName(bp.getSelectedPlayerName()));
+            bp.setPointsEarned(isMatch ? points : 0);
+            bp.setScored(true);
+            bonusPredictionRepository.save(bp);
+            if (isMatch) {
+                matched++;
+            }
+        }
+
+        return new TopScorerAwardResult(winningPlayerName.trim(), matched, predictions.size(), points);
+    }
+
+    /** Lowercase, trim, collapse spaces, and strip accents for lenient name comparison. */
+    private String normalizeName(String name) {
+        if (name == null) {
+            return "";
+        }
+        String stripped = java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return stripped.toLowerCase().trim().replaceAll("\\s+", " ");
     }
 }

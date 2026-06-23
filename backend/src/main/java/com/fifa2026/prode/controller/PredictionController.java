@@ -4,15 +4,18 @@ import com.fifa2026.prode.dto.BonusPredictionDTO;
 import com.fifa2026.prode.dto.BonusPredictionRequest;
 import com.fifa2026.prode.dto.PredictionDTO;
 import com.fifa2026.prode.dto.PredictionRequest;
+import com.fifa2026.prode.dto.TopScorerAwardResult;
 import com.fifa2026.prode.entity.User;
 import com.fifa2026.prode.service.CurrentUserService;
 import com.fifa2026.prode.service.PredictionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/predictions")
@@ -53,5 +56,12 @@ public class PredictionController {
     public ResponseEntity<List<BonusPredictionDTO>> getMyBonusPredictions() {
         User user = currentUserService.getCurrentUser();
         return ResponseEntity.ok(predictionService.getUserBonusPredictions(user.getId()));
+    }
+
+    @PostMapping("/bonus/award-top-scorer")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TopScorerAwardResult> awardTopScorer(@RequestBody Map<String, String> request) {
+        String playerName = request.get("playerName");
+        return ResponseEntity.ok(predictionService.awardTopScorerBonus(playerName));
     }
 }

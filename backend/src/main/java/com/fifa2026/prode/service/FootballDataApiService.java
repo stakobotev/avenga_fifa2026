@@ -3,6 +3,7 @@ package com.fifa2026.prode.service;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fifa2026.prode.dto.MatchResultCheckResponse;
+import com.fifa2026.prode.dto.TopScorerDTO;
 import com.fifa2026.prode.entity.Match;
 import com.fifa2026.prode.entity.Team;
 import com.fifa2026.prode.repository.MatchRepository;
@@ -19,6 +20,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -439,6 +441,54 @@ public class FootballDataApiService {
         return null;
     }
 
+    /**
+     * Fetch the competition's current top scorers from the external service.
+     * Returns an empty list when the API is disabled or the call fails.
+     */
+    public List<TopScorerDTO> fetchTopScorers(int limit) {
+        if (!isEnabled()) {
+            log.warn("Football-Data API is not enabled; cannot fetch scorers");
+            return new ArrayList<>();
+        }
+
+        try {
+            ScorersResponse response = getWebClient()
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/competitions/{competitionId}/scorers")
+                            .queryParam("limit", limit)
+                            .build(competitionId))
+                    .retrieve()
+                    .bodyToMono(ScorersResponse.class)
+                    .block();
+
+            List<TopScorerDTO> scorers = new ArrayList<>();
+            if (response == null || response.getScorers() == null) {
+                return scorers;
+            }
+            for (Scorer s : response.getScorers()) {
+                if (s.getPlayer() == null) {
+                    continue;
+                }
+                scorers.add(new TopScorerDTO(
+                        s.getPlayer().getName(),
+                        s.getPlayer().getNationality(),
+                        s.getTeam() != null ? s.getTeam().getName() : null,
+                        s.getTeam() != null ? mapApiTeamCode(s.getTeam().getTla()) : null,
+                        s.getGoals(),
+                        s.getPlayedMatches()));
+            }
+            return scorers;
+        } catch (WebClientResponseException e) {
+            log.error("Failed to fetch scorers from Football-Data.org: {} - {}",
+                    e.getStatusCode(), e.getResponseBodyAsString());
+            return new ArrayList<>();
+        } catch (Exception e) {
+            log.error("Error fetching scorers from Football-Data.org", e);
+            return new ArrayList<>();
+        }
+    }
+
     // DTO classes for API response
 
     @Data
@@ -498,6 +548,29 @@ public class FootballDataApiService {
     public static class ScoreDetail {
         private Integer home;
         private Integer away;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ScorersResponse {
+        private List<Scorer> scorers;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Scorer {
+        private ApiPlayer player;
+        private ApiTeam team;
+        private Integer goals;
+        private Integer playedMatches;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ApiPlayer {
+        private Long id;
+        private String name;
+        private String nationality;
     }
 
     @Data

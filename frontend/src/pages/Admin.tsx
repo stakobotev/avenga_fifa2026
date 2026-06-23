@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Calendar, Trophy, RotateCcw, Clock, Check, AlertCircle, RefreshCw, Wifi, WifiOff, Search } from 'lucide-react';
+import { Calendar, Trophy, RotateCcw, Clock, Check, AlertCircle, RefreshCw, Wifi, WifiOff, Search, Award } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { matchApi, adminApi, teamApi, type SyncStatus, type CheckResultResponse } from '../services/api';
+import { matchApi, adminApi, teamApi, type SyncStatus, type CheckResultResponse, type TopScorer, type TopScorerAwardResult } from '../services/api';
 import type { Match, Team } from '../types';
 import { computeGroupStandings } from '../utils/standings';
 import clsx from 'clsx';
@@ -301,6 +301,8 @@ export default function Admin() {
           <li>Use "Reset" to clear a match result and re-test</li>
         </ol>
       </div>
+
+      {filter === 'verify' && <TopScorerPanel />}
 
       {filter === 'verify' && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
@@ -878,6 +880,164 @@ function VerifyResultCard({ match, loading, onCheck, onSet }: VerifyResultCardPr
 
           {knockoutNeedsWinner && (
             <span className="text-xs text-yellow-600">Draw — set penalties or pick who advances</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Settles the TOP_SCORER bonus. Loads the external service's current scorer
+ * ranking, lets the admin pick (or type) the winning player, and awards the
+ * bonus to every matching prediction. The leader changes through the tournament,
+ * so this is meant to be run once at the end — hence the explicit confirm.
+ */
+function TopScorerPanel() {
+  const [loading, setLoading] = useState(false);
+  const [scorers, setScorers] = useState<TopScorer[] | null>(null);
+  const [selectedName, setSelectedName] = useState('');
+  const [awarding, setAwarding] = useState(false);
+  const [result, setResult] = useState<TopScorerAwardResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadScorers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await adminApi.getTopScorers(10);
+      setScorers(data);
+      if (data.length > 0 && selectedName === '') {
+        setSelectedName(data[0].playerName);
+      }
+      if (data.length === 0) {
+        setError('The external service returned no scorers (it may be disabled or have no data yet).');
+      }
+    } catch {
+      setError('Failed to load scorers from the external service.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const award = async () => {
+    const name = selectedName.trim();
+    if (!name) return;
+    if (!window.confirm(
+      `Award the Top Scorer bonus to "${name}"?\n\nThis settles the TOP_SCORER bonus for all users: matching picks get the points, the rest get zero. You can re-run with a different name to correct it.`
+    )) {
+      return;
+    }
+    setAwarding(true);
+    setError(null);
+    try {
+      const res = await adminApi.awardTopScorer(name);
+      setResult(res);
+    } catch {
+      setError('Failed to award the Top Scorer bonus.');
+    } finally {
+      setAwarding(false);
+    }
+  };
+
+  return (
+    <div className="card border-l-4 border-l-amber-500">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <Award className="h-6 w-6 text-amber-500 mr-3" />
+          <div>
+            <h3 className="font-bold text-gray-900">Top Scorer Bonus</h3>
+            <p className="text-sm text-gray-500">
+              Load the current scorer ranking and settle the TOP_SCORER bonus.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={loadScorers}
+          disabled={loading}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center"
+        >
+          <RefreshCw className={clsx('h-4 w-4 mr-2', loading && 'animate-spin')} />
+          {loading ? 'Loading...' : scorers ? 'Refresh scorers' : 'Load current scorers'}
+        </button>
+      </div>
+
+      {error && (
+        <div className="mt-3 text-sm text-yellow-700">{error}</div>
+      )}
+
+      {scorers && scorers.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-500 border-b border-gray-200">
+                  <th className="py-1 px-2">#</th>
+                  <th className="py-1 px-2">Player</th>
+                  <th className="py-1 px-2">Team</th>
+                  <th className="py-1 px-2 text-center">Goals</th>
+                  <th className="py-1 px-2 text-center">MP</th>
+                  <th className="py-1 px-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {scorers.map((s, i) => {
+                  const isSelected = s.playerName === selectedName;
+                  return (
+                    <tr
+                      key={`${s.playerName}-${i}`}
+                      className={clsx('border-b border-gray-100', isSelected && 'bg-amber-50')}
+                    >
+                      <td className="py-1 px-2 font-medium">{i + 1}</td>
+                      <td className="py-1 px-2">{s.playerName}</td>
+                      <td className="py-1 px-2 text-gray-600">{s.teamCode || s.teamName || '—'}</td>
+                      <td className="py-1 px-2 text-center font-bold">{s.goals ?? '—'}</td>
+                      <td className="py-1 px-2 text-center text-gray-500">{s.playedMatches ?? '—'}</td>
+                      <td className="py-1 px-2 text-right">
+                        <button
+                          onClick={() => setSelectedName(s.playerName)}
+                          className="text-xs text-purple-600 hover:underline"
+                        >
+                          Select
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-end gap-3">
+            <div className="flex flex-col">
+              <label className="text-xs font-medium text-gray-500 mb-1">Winning player</label>
+              <input
+                type="text"
+                value={selectedName}
+                onChange={(e) => setSelectedName(e.target.value)}
+                placeholder="Player name"
+                className="h-9 border rounded text-sm px-2 min-w-[16rem]"
+              />
+            </div>
+            <button
+              onClick={award}
+              disabled={awarding || selectedName.trim() === ''}
+              className="h-9 px-4 bg-amber-600 text-white text-sm rounded hover:bg-amber-700 disabled:opacity-50 flex items-center"
+            >
+              <Award className="h-4 w-4 mr-1" />
+              {awarding ? 'Awarding...' : 'Award TOP_SCORER bonus'}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-gray-400">
+            Name matching is accent- and case-insensitive but must otherwise match the
+            user's pick. Edit the box above if a user spelled it differently.
+          </p>
+
+          {result && (
+            <div className="mt-3 text-sm text-green-700 bg-green-50 rounded p-3">
+              Settled "{result.playerName}": awarded {result.pointsEach} pts to{' '}
+              <span className="font-semibold">{result.matched}</span> of {result.total} TOP_SCORER predictions.
+            </div>
           )}
         </div>
       )}
