@@ -1,5 +1,6 @@
 package com.fifa2026.prode.service;
 
+import com.fifa2026.prode.dto.KnockoutTeamsCheckResponse;
 import com.fifa2026.prode.dto.MatchDTO;
 import com.fifa2026.prode.dto.MatchResultCheckResponse;
 import com.fifa2026.prode.dto.MatchResultRequest;
@@ -16,6 +17,9 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -128,6 +132,95 @@ public class MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found"));
         return footballDataApiService.checkResultForMatch(match);
+    }
+
+    private static final Pattern GROUP_POS = Pattern.compile("^([12])([A-L])$");
+    private static final Pattern WINNER_LOSER = Pattern.compile("^([WL])(\\d+)$", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Resolve the teams that currently qualify for a knockout match's two slots,
+     * from the external standings (group-position placeholders) and our finished
+     * matches (winner/loser placeholders). Does not modify any data.
+     */
+    public KnockoutTeamsCheckResponse checkKnockoutTeams(Long matchId) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
+
+        KnockoutTeamsCheckResponse resp = new KnockoutTeamsCheckResponse();
+        resp.setHomePlaceholder(match.getHomePlaceholder());
+        resp.setAwayPlaceholder(match.getAwayPlaceholder());
+
+        Map<String, List<String>> standings = footballDataApiService.fetchGroupStandings();
+
+        Team home = resolvePlaceholder(match.getHomePlaceholder(), standings);
+        Team away = resolvePlaceholder(match.getAwayPlaceholder(), standings);
+
+        if (home != null) {
+            resp.setHomeTeamId(home.getId());
+            resp.setHomeTeamCode(home.getCode());
+            resp.setHomeTeamName(home.getName());
+        }
+        if (away != null) {
+            resp.setAwayTeamId(away.getId());
+            resp.setAwayTeamCode(away.getCode());
+            resp.setAwayTeamName(away.getName());
+        }
+
+        if (home == null && away == null) {
+            resp.setMessage("No qualified teams available yet (group not decided, or a best-third slot).");
+        }
+        return resp;
+    }
+
+    /**
+     * Resolve a single knockout placeholder to a team, or null if undeterminable:
+     * "1A"/"2C" use the current group standings; "W##"/"L##" use the winner/loser
+     * of that finished match; "3rd" and anything else cannot be resolved here.
+     */
+    private Team resolvePlaceholder(String placeholder, Map<String, List<String>> standings) {
+        if (placeholder == null) {
+            return null;
+        }
+
+        Matcher gp = GROUP_POS.matcher(placeholder);
+        if (gp.matches()) {
+            int position = Integer.parseInt(gp.group(1));
+            String letter = gp.group(2);
+            List<String> codes = standings.get(letter);
+            if (codes == null || codes.size() < position) {
+                return null;
+            }
+            String code = codes.get(position - 1);
+            return code == null ? null : teamRepository.findByCode(code).orElse(null);
+        }
+
+        Matcher wl = WINNER_LOSER.matcher(placeholder);
+        if (wl.matches()) {
+            boolean wantWinner = wl.group(1).equalsIgnoreCase("W");
+            int number = Integer.parseInt(wl.group(2));
+            Optional<Match> srcOpt = matchRepository.findByMatchNumber(number);
+            if (srcOpt.isEmpty()) {
+                return null;
+            }
+            Match src = srcOpt.get();
+            Team winner = src.getWinnerTeam();
+            if (winner == null) {
+                return null;
+            }
+            if (wantWinner) {
+                return winner;
+            }
+            // Loser: the assigned team that isn't the winner.
+            if (src.getHomeTeam() != null && !src.getHomeTeam().getId().equals(winner.getId())) {
+                return src.getHomeTeam();
+            }
+            if (src.getAwayTeam() != null && !src.getAwayTeam().getId().equals(winner.getId())) {
+                return src.getAwayTeam();
+            }
+            return null;
+        }
+
+        return null; // "3rd" or anything we can't map
     }
 
     @Transactional

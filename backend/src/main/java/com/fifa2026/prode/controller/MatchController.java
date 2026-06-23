@@ -1,5 +1,6 @@
 package com.fifa2026.prode.controller;
 
+import com.fifa2026.prode.dto.KnockoutTeamsCheckResponse;
 import com.fifa2026.prode.dto.MatchDTO;
 import com.fifa2026.prode.dto.MatchResultCheckResponse;
 import com.fifa2026.prode.dto.MatchResultRequest;
@@ -82,6 +83,12 @@ public class MatchController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MatchResultCheckResponse> checkMatchResult(@PathVariable Long id) {
         return ResponseEntity.ok(matchService.checkExternalResult(id));
+    }
+
+    @GetMapping("/{id}/check-teams")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<KnockoutTeamsCheckResponse> checkKnockoutTeams(@PathVariable Long id) {
+        return ResponseEntity.ok(matchService.checkKnockoutTeams(id));
     }
 
     @PutMapping("/{id}/date")

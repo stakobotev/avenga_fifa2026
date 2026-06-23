@@ -312,6 +312,20 @@ export interface CheckResultResponse {
   message?: string;
 }
 
+// Teams currently qualifying for a knockout match's slots, resolved from the
+// external standings / finished matches. Either side may be absent.
+export interface KnockoutTeamsCheckResponse {
+  homePlaceholder?: string;
+  awayPlaceholder?: string;
+  homeTeamId?: number;
+  homeTeamCode?: string;
+  homeTeamName?: string;
+  awayTeamId?: number;
+  awayTeamCode?: string;
+  awayTeamName?: string;
+  message?: string;
+}
+
 // An entry in the external service's top-scorers ranking.
 export interface TopScorer {
   playerName: string;
@@ -364,6 +378,10 @@ export const adminApi = {
     awayTeamId?: number;
   }): Promise<Match> => {
     const { data } = await api.put(`/matches/${matchId}/teams`, teams);
+    return data;
+  },
+  checkMatchTeams: async (matchId: number): Promise<KnockoutTeamsCheckResponse> => {
+    const { data } = await api.get(`/matches/${matchId}/check-teams`);
     return data;
   },
   resetMatch: async (matchId: number): Promise<Match> => {

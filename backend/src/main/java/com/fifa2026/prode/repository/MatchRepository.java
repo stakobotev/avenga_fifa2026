@@ -33,5 +33,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     // For external API sync
     Optional<Match> findByExternalApiId(Long externalApiId);
 
+    Optional<Match> findByMatchNumber(Integer matchNumber);
+
     List<Match> findByStatusAndMatchDateBefore(Match.MatchStatus status, Instant before);
 }

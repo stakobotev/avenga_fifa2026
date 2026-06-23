@@ -21,7 +21,9 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -515,6 +517,65 @@ public class FootballDataApiService {
         return new ArrayList<>(list.subList(0, Math.min(n, list.size())));
     }
 
+    // Group standings are cached briefly (used to resolve knockout placeholders).
+    private static final long STANDINGS_CACHE_TTL_MS = 120_000; // 2 minutes
+    private volatile Map<String, List<String>> cachedStandings;
+    private volatile long cachedStandingsAt;
+
+    /**
+     * Fetch current group standings, returned as a map of group letter (A..L) to
+     * the ordered list of our team codes by position (index 0 = 1st). Cached
+     * briefly. Returns an empty map when the API is disabled or fails with no
+     * cached value.
+     */
+    public Map<String, List<String>> fetchGroupStandings() {
+        if (!isEnabled()) {
+            return new HashMap<>();
+        }
+
+        long now = System.currentTimeMillis();
+        Map<String, List<String>> cache = cachedStandings;
+        if (cache != null && now - cachedStandingsAt < STANDINGS_CACHE_TTL_MS) {
+            return cache;
+        }
+
+        try {
+            StandingsResponse response = getWebClient()
+                    .get()
+                    .uri("/competitions/{competitionId}/standings", competitionId)
+                    .retrieve()
+                    .bodyToMono(StandingsResponse.class)
+                    .block();
+
+            Map<String, List<String>> result = new HashMap<>();
+            if (response != null && response.getStandings() != null) {
+                for (StandingGroup sg : response.getStandings()) {
+                    if (sg.getType() != null && !"TOTAL".equals(sg.getType())) {
+                        continue;
+                    }
+                    if (sg.getGroup() == null || sg.getTable() == null) {
+                        continue;
+                    }
+                    String letter = sg.getGroup().replace("Group", "").trim();
+                    List<String> codes = new ArrayList<>();
+                    for (TableEntry te : sg.getTable()) {
+                        codes.add(te.getTeam() != null ? mapApiTeamCode(te.getTeam().getTla()) : null);
+                    }
+                    result.put(letter, codes);
+                }
+            }
+            cachedStandings = result;
+            cachedStandingsAt = now;
+            return result;
+        } catch (WebClientResponseException e) {
+            log.error("Failed to fetch standings from Football-Data.org: {} - {}",
+                    e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.error("Error fetching standings from Football-Data.org", e);
+        }
+        return cache != null ? cache : new HashMap<>();
+    }
+
     // DTO classes for API response
 
     @Data
@@ -597,6 +658,28 @@ public class FootballDataApiService {
         private Long id;
         private String name;
         private String nationality;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class StandingsResponse {
+        private List<StandingGroup> standings;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class StandingGroup {
+        private String stage;
+        private String type;
+        private String group;
+        private List<TableEntry> table;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TableEntry {
+        private Integer position;
+        private ApiTeam team;
     }
 
     @Data

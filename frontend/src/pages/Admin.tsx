@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Calendar, Trophy, RotateCcw, Clock, Check, AlertCircle, RefreshCw, Wifi, WifiOff, Search, Award } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { matchApi, adminApi, teamApi, type SyncStatus, type CheckResultResponse, type TopScorer, type TopScorerAwardResult, type BonusAwardResult } from '../services/api';
+import { matchApi, adminApi, teamApi, type SyncStatus, type CheckResultResponse, type TopScorer, type TopScorerAwardResult, type BonusAwardResult, type KnockoutTeamsCheckResponse } from '../services/api';
 import type { Match, Team } from '../types';
 import { computeGroupStandings } from '../utils/standings';
 import clsx from 'clsx';
@@ -335,6 +335,7 @@ export default function Admin() {
               onSetDate={(hours) => handleSetMatchDate(match.id, hours)}
               onSetResult={(home, away, extra) => handleSetResult(match.id, home, away, extra)}
               onSetTeams={(homeTeamId, awayTeamId) => handleSetTeams(match.id, homeTeamId, awayTeamId)}
+              onCheckTeams={() => adminApi.checkMatchTeams(match.id)}
               onReset={() => handleResetMatch(match.id)}
             />
           )
@@ -408,10 +409,11 @@ interface MatchAdminCardProps {
     extra?: { homePenaltyScore?: number; awayPenaltyScore?: number; winnerTeamId?: number },
   ) => void;
   onSetTeams: (homeTeamId?: number, awayTeamId?: number) => void;
+  onCheckTeams: () => Promise<KnockoutTeamsCheckResponse>;
   onReset: () => void;
 }
 
-function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, onSetDate, onSetResult, onSetTeams, onReset }: MatchAdminCardProps) {
+function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, onSetDate, onSetResult, onSetTeams, onCheckTeams, onReset }: MatchAdminCardProps) {
   const [homeScore, setHomeScore] = useState(match.homeScore?.toString() || '');
   const [awayScore, setAwayScore] = useState(match.awayScore?.toString() || '');
   const [homePenalty, setHomePenalty] = useState(match.homePenaltyScore?.toString() || '');
@@ -419,6 +421,23 @@ function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, on
   const [winnerTeamId, setWinnerTeamId] = useState(match.winnerTeam?.id?.toString() || '');
   const [homeTeamId, setHomeTeamId] = useState(match.homeTeam?.id?.toString() || '');
   const [awayTeamId, setAwayTeamId] = useState(match.awayTeam?.id?.toString() || '');
+  const [checkingTeams, setCheckingTeams] = useState(false);
+  const [teamsCheck, setTeamsCheck] = useState<KnockoutTeamsCheckResponse | null>(null);
+
+  const handleCheckTeams = async () => {
+    setCheckingTeams(true);
+    try {
+      const res = await onCheckTeams();
+      setTeamsCheck(res);
+      // Visualization only — auto-fill the dropdowns but don't persist anything.
+      if (res.homeTeamId) setHomeTeamId(String(res.homeTeamId));
+      if (res.awayTeamId) setAwayTeamId(String(res.awayTeamId));
+    } catch {
+      setTeamsCheck({ message: 'Failed to check qualified teams.' });
+    } finally {
+      setCheckingTeams(false);
+    }
+  };
 
   const isFinished = match.status === 'FINISHED';
   const isPast = new Date(match.matchDate) < new Date();
@@ -663,6 +682,14 @@ function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, on
               )}
             </div>
             <button
+              onClick={handleCheckTeams}
+              disabled={checkingTeams || loading}
+              className="h-9 px-3 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 flex items-center"
+            >
+              <Search className={clsx('h-4 w-4 mr-1', checkingTeams && 'animate-pulse')} />
+              {checkingTeams ? 'Checking...' : 'Check'}
+            </button>
+            <button
               onClick={() => onSetTeams(
                 homeTeamId ? Number(homeTeamId) : undefined,
                 awayTeamId ? Number(awayTeamId) : undefined,
@@ -677,6 +704,25 @@ function MatchAdminCard({ match, teams, allMatches, thirdPlaceTeams, loading, on
               <span className="pb-2 text-xs text-yellow-600">Teams not yet assigned</span>
             )}
           </div>
+
+          {/* Qualified teams from the external standings (visualization only). */}
+          {teamsCheck && (
+            <div className="mt-3 text-sm">
+              {teamsCheck.homeTeamName || teamsCheck.awayTeamName ? (
+                <div className="text-gray-700">
+                  <span className="text-gray-500">Qualified now:</span>{' '}
+                  <span className="font-semibold">{teamsCheck.homeTeamName || '—'}</span>
+                  <span className="text-gray-400"> vs </span>
+                  <span className="font-semibold">{teamsCheck.awayTeamName || '—'}</span>
+                  <span className="ml-2 text-xs text-green-700">dropdowns updated (not saved)</span>
+                </div>
+              ) : (
+                <div className="text-yellow-700">
+                  {teamsCheck.message || 'No qualified teams available yet.'}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
