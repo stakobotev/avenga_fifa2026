@@ -1,5 +1,6 @@
 package com.fifa2026.prode.service;
 
+import com.fifa2026.prode.dto.BonusAwardResult;
 import com.fifa2026.prode.dto.BonusPredictionDTO;
 import com.fifa2026.prode.dto.BonusPredictionRequest;
 import com.fifa2026.prode.dto.PredictionDTO;
@@ -207,6 +208,38 @@ public class PredictionService {
         }
 
         return new TopScorerAwardResult(winningPlayerName.trim(), matched, predictions.size(), points);
+    }
+
+    /**
+     * Settle a team-based bonus (CHAMPION, RUNNER_UP or THIRD_PLACE) against the
+     * given team. Every prediction of that type is marked scored; those that
+     * picked the team are awarded the bonus points, the rest get zero. Re-running
+     * with a different team simply re-settles, so a correction is safe.
+     */
+    @Transactional
+    public BonusAwardResult awardTeamBonus(BonusPrediction.BonusType type, Long teamId) {
+        if (type == BonusPrediction.BonusType.TOP_SCORER) {
+            throw new RuntimeException("Use the top-scorer award for the TOP_SCORER bonus");
+        }
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        int points = scoringService.calculateBonusPoints(type);
+        List<BonusPrediction> predictions = bonusPredictionRepository.findByPredictionType(type);
+
+        int matched = 0;
+        for (BonusPrediction bp : predictions) {
+            boolean isMatch = bp.getSelectedTeam() != null
+                    && bp.getSelectedTeam().getId().equals(teamId);
+            bp.setPointsEarned(isMatch ? points : 0);
+            bp.setScored(true);
+            bonusPredictionRepository.save(bp);
+            if (isMatch) {
+                matched++;
+            }
+        }
+
+        return new BonusAwardResult(type.name(), team.getName(), matched, predictions.size(), points);
     }
 
     /** Lowercase, trim, collapse spaces, and strip accents for lenient name comparison. */

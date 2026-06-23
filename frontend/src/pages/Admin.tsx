@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Calendar, Trophy, RotateCcw, Clock, Check, AlertCircle, RefreshCw, Wifi, WifiOff, Search, Award } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { matchApi, adminApi, teamApi, type SyncStatus, type CheckResultResponse, type TopScorer, type TopScorerAwardResult } from '../services/api';
+import { matchApi, adminApi, teamApi, type SyncStatus, type CheckResultResponse, type TopScorer, type TopScorerAwardResult, type BonusAwardResult } from '../services/api';
 import type { Match, Team } from '../types';
 import { computeGroupStandings } from '../utils/standings';
 import clsx from 'clsx';
@@ -303,6 +303,8 @@ export default function Admin() {
       </div>
 
       {filter === 'verify' && <TopScorerPanel />}
+
+      {filter === 'verify' && <TeamBonusPanel teams={teams} />}
 
       {filter === 'verify' && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
@@ -1041,6 +1043,109 @@ function TopScorerPanel() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Settles the team-based bonuses (champion, runner-up, third place). For each,
+ * the admin picks the winning team and awards the bonus to every matching
+ * prediction. Re-running with a different team re-settles, so corrections are
+ * safe. The leader/medalists are only known at the end, hence the confirm step.
+ */
+function TeamBonusPanel({ teams }: { teams: Team[] }) {
+  const rows: { type: string; label: string; points: number }[] = [
+    { type: 'CHAMPION', label: 'Champion', points: 15 },
+    { type: 'RUNNER_UP', label: 'Runner-up', points: 10 },
+    { type: 'THIRD_PLACE', label: 'Third place', points: 8 },
+  ];
+
+  return (
+    <div className="card border-l-4 border-l-amber-500">
+      <div className="flex items-center mb-3">
+        <Trophy className="h-6 w-6 text-amber-500 mr-3" />
+        <div>
+          <h3 className="font-bold text-gray-900">Champion / Runner-up / Third place</h3>
+          <p className="text-sm text-gray-500">
+            Pick the winning team for each podium bonus and settle it.
+          </p>
+        </div>
+      </div>
+      <div className="divide-y divide-gray-100">
+        {rows.map(r => (
+          <TeamBonusRow key={r.type} predictionType={r.type} label={r.label} points={r.points} teams={teams} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TeamBonusRow({
+  predictionType,
+  label,
+  points,
+  teams,
+}: {
+  predictionType: string;
+  label: string;
+  points: number;
+  teams: Team[];
+}) {
+  const [teamId, setTeamId] = useState('');
+  const [awarding, setAwarding] = useState(false);
+  const [result, setResult] = useState<BonusAwardResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const award = async () => {
+    if (teamId === '') return;
+    const team = teams.find(t => t.id === Number(teamId));
+    if (!window.confirm(
+      `Award the ${label} bonus (${points} pts) to ${team?.name ?? 'this team'}?\n\n` +
+      `This settles the ${predictionType} bonus for all users: matching picks get the points, the rest get zero. ` +
+      `You can re-run with a different team to correct it.`
+    )) {
+      return;
+    }
+    setAwarding(true);
+    setError(null);
+    try {
+      const res = await adminApi.awardTeamBonus(predictionType, Number(teamId));
+      setResult(res);
+    } catch {
+      setError(`Failed to award the ${label} bonus.`);
+    } finally {
+      setAwarding(false);
+    }
+  };
+
+  return (
+    <div className="py-3 flex flex-wrap items-center gap-3">
+      <span className="w-28 font-medium text-gray-700">{label}</span>
+      <span className="text-xs text-gray-400 w-12">{points} pts</span>
+      <select
+        value={teamId}
+        onChange={(e) => setTeamId(e.target.value)}
+        className="h-9 border rounded text-sm px-2 min-w-[14rem]"
+      >
+        <option value="">— Select team —</option>
+        {teams.map(t => (
+          <option key={t.id} value={t.id}>{t.code} — {t.name}</option>
+        ))}
+      </select>
+      <button
+        onClick={award}
+        disabled={awarding || teamId === ''}
+        className="h-9 px-4 bg-amber-600 text-white text-sm rounded hover:bg-amber-700 disabled:opacity-50 flex items-center"
+      >
+        <Award className="h-4 w-4 mr-1" />
+        {awarding ? 'Awarding...' : 'Award'}
+      </button>
+      {result && (
+        <span className="text-sm text-green-700">
+          Awarded to {result.matched}/{result.total} ({result.awardedLabel})
+        </span>
+      )}
+      {error && <span className="text-sm text-yellow-700">{error}</span>}
     </div>
   );
 }

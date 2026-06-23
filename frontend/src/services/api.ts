@@ -326,6 +326,15 @@ export interface TopScorerAwardResult {
   pointsEach: number;
 }
 
+// Outcome of settling a team-based bonus (champion/runner-up/third place).
+export interface BonusAwardResult {
+  predictionType: string;
+  awardedLabel: string;
+  matched: number;
+  total: number;
+  pointsEach: number;
+}
+
 // Admin
 export const adminApi = {
   updateMatchResult: async (matchId: number, result: {
@@ -371,6 +380,13 @@ export const adminApi = {
   },
   awardTopScorer: async (playerName: string): Promise<TopScorerAwardResult> => {
     const { data } = await api.post('/predictions/bonus/award-top-scorer', { playerName });
+    return data;
+  },
+  awardTeamBonus: async (predictionType: string, teamId: number): Promise<BonusAwardResult> => {
+    const { data } = await api.post('/predictions/bonus/award-team', {
+      predictionType,
+      teamId: String(teamId),
+    });
     return data;
   },
 };

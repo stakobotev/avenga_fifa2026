@@ -1,10 +1,12 @@
 package com.fifa2026.prode.controller;
 
+import com.fifa2026.prode.dto.BonusAwardResult;
 import com.fifa2026.prode.dto.BonusPredictionDTO;
 import com.fifa2026.prode.dto.BonusPredictionRequest;
 import com.fifa2026.prode.dto.PredictionDTO;
 import com.fifa2026.prode.dto.PredictionRequest;
 import com.fifa2026.prode.dto.TopScorerAwardResult;
+import com.fifa2026.prode.entity.BonusPrediction;
 import com.fifa2026.prode.entity.User;
 import com.fifa2026.prode.service.CurrentUserService;
 import com.fifa2026.prode.service.PredictionService;
@@ -63,5 +65,23 @@ public class PredictionController {
     public ResponseEntity<TopScorerAwardResult> awardTopScorer(@RequestBody Map<String, String> request) {
         String playerName = request.get("playerName");
         return ResponseEntity.ok(predictionService.awardTopScorerBonus(playerName));
+    }
+
+    @PostMapping("/bonus/award-team")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BonusAwardResult> awardTeamBonus(@RequestBody Map<String, String> request) {
+        BonusPrediction.BonusType type;
+        try {
+            type = BonusPrediction.BonusType.valueOf(request.get("predictionType"));
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new RuntimeException("Invalid prediction type");
+        }
+        Long teamId;
+        try {
+            teamId = Long.valueOf(request.get("teamId"));
+        } catch (NumberFormatException | NullPointerException e) {
+            throw new RuntimeException("A valid teamId is required");
+        }
+        return ResponseEntity.ok(predictionService.awardTeamBonus(type, teamId));
     }
 }
