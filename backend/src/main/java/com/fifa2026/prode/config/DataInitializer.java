@@ -342,62 +342,40 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Initialized Round of 32 matches (teams TBD)");
 
         // Round of 16: July 4-7 (8 matches)
-        int r32Start = matchNumber - 16;
-
-        // July 4 - Round of 16 Day 1 (US Independence Day)
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 4, 13, 0, 0, 0, et), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_16, matchNumber++, "W" + r32Start, "W" + (r32Start + 1));
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 4, 17, 0, 0, 0, et), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 2), "W" + (r32Start + 3));
-
-        // July 5 - Round of 16 Day 2
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 5, 13, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 4), "W" + (r32Start + 5));
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 5, 17, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 6), "W" + (r32Start + 7));
-
-        // July 6 - Round of 16 Day 3
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 6, 13, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 8), "W" + (r32Start + 9));
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 6, 17, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 10), "W" + (r32Start + 11));
-
-        // July 7 - Round of 16 Day 4
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 7, 13, 0, 0, 0, et), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 12), "W" + (r32Start + 13));
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 7, 17, 0, 0, 0, et), "Levi's Stadium", "San Francisco Bay Area", Match.Stage.ROUND_OF_16, matchNumber++, "W" + (r32Start + 14), "W" + (r32Start + 15));
+        // Round of 16: July 4-7 (8 matches). Official bracket feeder pairings
+        // (not sequential). UTC times; venues span several US/CA time zones.
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 4, 21, 0, 0, 0, utc), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_16, matchNumber++, "W74", "W77");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 4, 17, 0, 0, 0, utc), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_16, matchNumber++, "W73", "W75");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 5, 20, 0, 0, 0, utc), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_16, matchNumber++, "W76", "W78");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 6, 0, 0, 0, 0, utc), "Estadio Azteca", "Mexico City", Match.Stage.ROUND_OF_16, matchNumber++, "W79", "W80");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 6, 19, 0, 0, 0, utc), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_16, matchNumber++, "W83", "W84");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 7, 0, 0, 0, 0, utc), "Lumen Field", "Seattle", Match.Stage.ROUND_OF_16, matchNumber++, "W81", "W82");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 7, 16, 0, 0, 0, utc), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_16, matchNumber++, "W86", "W88");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 7, 20, 0, 0, 0, utc), "BC Place", "Vancouver", Match.Stage.ROUND_OF_16, matchNumber++, "W85", "W87");
 
         log.info("Initialized Round of 16 matches (teams TBD)");
 
         // Quarter-finals: July 9-12 (4 matches)
-        int r16StartNum = matchNumber - 8;
-
-        // July 9
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 9, 16, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.QUARTERFINAL, matchNumber++, "W" + r16StartNum, "W" + (r16StartNum + 1));
-
-        // July 10
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 10, 16, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 2), "W" + (r16StartNum + 3));
-
-        // July 11
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 11, 16, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 4), "W" + (r16StartNum + 5));
-
-        // July 12
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 12, 16, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", Match.Stage.QUARTERFINAL, matchNumber++, "W" + (r16StartNum + 6), "W" + (r16StartNum + 7));
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 9, 20, 0, 0, 0, utc), "Gillette Stadium", "Boston", Match.Stage.QUARTERFINAL, matchNumber++, "W89", "W90");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 10, 19, 0, 0, 0, utc), "SoFi Stadium", "Los Angeles", Match.Stage.QUARTERFINAL, matchNumber++, "W93", "W94");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 11, 21, 0, 0, 0, utc), "Hard Rock Stadium", "Miami", Match.Stage.QUARTERFINAL, matchNumber++, "W91", "W92");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 12, 1, 0, 0, 0, utc), "Arrowhead Stadium", "Kansas City", Match.Stage.QUARTERFINAL, matchNumber++, "W95", "W96");
 
         log.info("Initialized Quarter-final matches (teams TBD)");
 
         // Semi-finals: July 14-15 (2 matches)
-        int qfStartNum = matchNumber - 4;
-
-        // July 14
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 14, 17, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.SEMIFINAL, matchNumber++, "W" + qfStartNum, "W" + (qfStartNum + 1));
-
-        // July 15
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 15, 17, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.SEMIFINAL, matchNumber++, "W" + (qfStartNum + 2), "W" + (qfStartNum + 3));
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 14, 19, 0, 0, 0, utc), "AT&T Stadium", "Dallas", Match.Stage.SEMIFINAL, matchNumber++, "W97", "W98");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 15, 19, 0, 0, 0, utc), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.SEMIFINAL, matchNumber++, "W99", "W100");
 
         log.info("Initialized Semi-final matches (teams TBD)");
 
         // Third place playoff: July 18
-        int sfStartNum = matchNumber - 2;
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 18, 16, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.THIRD_PLACE, matchNumber++, "L" + sfStartNum, "L" + (sfStartNum + 1));
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 18, 21, 0, 0, 0, utc), "Hard Rock Stadium", "Miami", Match.Stage.THIRD_PLACE, matchNumber++, "L101", "L102");
 
         log.info("Initialized Third place match (teams TBD)");
 
         // Final: July 19
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 19, 16, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.FINAL, matchNumber, "W" + sfStartNum, "W" + (sfStartNum + 1));
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 19, 19, 0, 0, 0, utc), "MetLife Stadium", "New Jersey", Match.Stage.FINAL, matchNumber, "W101", "W102");
 
         log.info("Initialized Final match (teams TBD)");
     }

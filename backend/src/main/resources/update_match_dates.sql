@@ -458,74 +458,74 @@ VALUES ('2D', '2G', '2026-07-03 18:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 
 
 -- ===== ROUND OF 16 (8 matches): July 4-7 =====
 
--- Match 89: W73 vs W74 - July 4, 1pm ET = 17:00 UTC
+-- Match 89: W74 vs W77 - July 4, 5pm ET = 21:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W73', 'W74', '2026-07-04 17:00:00'::timestamp, 'Lincoln Financial Field', 'Philadelphia', 'ROUND_OF_16', 89, 'SCHEDULED');
+VALUES ('W74', 'W77', '2026-07-04 21:00:00'::timestamp, 'Lincoln Financial Field', 'Philadelphia', 'ROUND_OF_16', 89, 'SCHEDULED');
 
--- Match 90: W75 vs W76 - July 4, 5pm ET = 21:00 UTC
+-- Match 90: W73 vs W75 - July 4, 12pm CT = 17:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W75', 'W76', '2026-07-04 21:00:00'::timestamp, 'NRG Stadium', 'Houston', 'ROUND_OF_16', 90, 'SCHEDULED');
+VALUES ('W73', 'W75', '2026-07-04 17:00:00'::timestamp, 'NRG Stadium', 'Houston', 'ROUND_OF_16', 90, 'SCHEDULED');
 
--- Match 91: W77 vs W78 - July 5, 1pm ET = 17:00 UTC
+-- Match 91: W76 vs W78 - July 5, 4pm ET = 20:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W77', 'W78', '2026-07-05 17:00:00'::timestamp, 'MetLife Stadium', 'New Jersey', 'ROUND_OF_16', 91, 'SCHEDULED');
+VALUES ('W76', 'W78', '2026-07-05 20:00:00'::timestamp, 'MetLife Stadium', 'New Jersey', 'ROUND_OF_16', 91, 'SCHEDULED');
 
--- Match 92: W79 vs W80 - July 5, 5pm ET = 21:00 UTC
+-- Match 92: W79 vs W80 - July 5, 6pm CT = 00:00 UTC (July 6)
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W79', 'W80', '2026-07-05 21:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 'ROUND_OF_16', 92, 'SCHEDULED');
+VALUES ('W79', 'W80', '2026-07-06 00:00:00'::timestamp, 'Estadio Azteca', 'Mexico City', 'ROUND_OF_16', 92, 'SCHEDULED');
 
--- Match 93: W81 vs W82 - July 6, 1pm ET = 17:00 UTC
+-- Match 93: W83 vs W84 - July 6, 2pm CT = 19:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W81', 'W82', '2026-07-06 17:00:00'::timestamp, 'Hard Rock Stadium', 'Miami', 'ROUND_OF_16', 93, 'SCHEDULED');
+VALUES ('W83', 'W84', '2026-07-06 19:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 'ROUND_OF_16', 93, 'SCHEDULED');
 
--- Match 94: W83 vs W84 - July 6, 5pm ET = 21:00 UTC
+-- Match 94: W81 vs W82 - July 6, 5pm PT = 00:00 UTC (July 7)
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W83', 'W84', '2026-07-06 21:00:00'::timestamp, 'SoFi Stadium', 'Los Angeles', 'ROUND_OF_16', 94, 'SCHEDULED');
+VALUES ('W81', 'W82', '2026-07-07 00:00:00'::timestamp, 'Lumen Field', 'Seattle', 'ROUND_OF_16', 94, 'SCHEDULED');
 
--- Match 95: W85 vs W86 - July 7, 1pm ET = 17:00 UTC
+-- Match 95: W86 vs W88 - July 7, 12pm ET = 16:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W85', 'W86', '2026-07-07 17:00:00'::timestamp, 'Mercedes-Benz Stadium', 'Atlanta', 'ROUND_OF_16', 95, 'SCHEDULED');
+VALUES ('W86', 'W88', '2026-07-07 16:00:00'::timestamp, 'Mercedes-Benz Stadium', 'Atlanta', 'ROUND_OF_16', 95, 'SCHEDULED');
 
--- Match 96: W87 vs W88 - July 7, 5pm ET = 21:00 UTC
+-- Match 96: W85 vs W87 - July 7, 1pm PT = 20:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W87', 'W88', '2026-07-07 21:00:00'::timestamp, 'Levi''s Stadium', 'San Francisco Bay Area', 'ROUND_OF_16', 96, 'SCHEDULED');
+VALUES ('W85', 'W87', '2026-07-07 20:00:00'::timestamp, 'BC Place', 'Vancouver', 'ROUND_OF_16', 96, 'SCHEDULED');
 
 -- ===== QUARTER-FINALS (4 matches): July 9-12 =====
 
 -- Match 97: W89 vs W90 - July 9, 4pm ET = 20:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W89', 'W90', '2026-07-09 20:00:00'::timestamp, 'MetLife Stadium', 'New Jersey', 'QUARTERFINAL', 97, 'SCHEDULED');
+VALUES ('W89', 'W90', '2026-07-09 20:00:00'::timestamp, 'Gillette Stadium', 'Boston', 'QUARTERFINAL', 97, 'SCHEDULED');
 
--- Match 98: W91 vs W92 - July 10, 4pm ET = 20:00 UTC
+-- Match 98: W93 vs W94 - July 10, 12pm PT = 19:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W91', 'W92', '2026-07-10 20:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 'QUARTERFINAL', 98, 'SCHEDULED');
+VALUES ('W93', 'W94', '2026-07-10 19:00:00'::timestamp, 'SoFi Stadium', 'Los Angeles', 'QUARTERFINAL', 98, 'SCHEDULED');
 
--- Match 99: W93 vs W94 - July 11, 4pm ET = 20:00 UTC
+-- Match 99: W91 vs W92 - July 11, 5pm ET = 21:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W93', 'W94', '2026-07-11 20:00:00'::timestamp, 'Hard Rock Stadium', 'Miami', 'QUARTERFINAL', 99, 'SCHEDULED');
+VALUES ('W91', 'W92', '2026-07-11 21:00:00'::timestamp, 'Hard Rock Stadium', 'Miami', 'QUARTERFINAL', 99, 'SCHEDULED');
 
--- Match 100: W95 vs W96 - July 12, 4pm ET = 20:00 UTC
+-- Match 100: W95 vs W96 - July 11, 8pm CT = 01:00 UTC (July 12)
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W95', 'W96', '2026-07-12 20:00:00'::timestamp, 'SoFi Stadium', 'Los Angeles', 'QUARTERFINAL', 100, 'SCHEDULED');
+VALUES ('W95', 'W96', '2026-07-12 01:00:00'::timestamp, 'Arrowhead Stadium', 'Kansas City', 'QUARTERFINAL', 100, 'SCHEDULED');
 
 -- ===== SEMI-FINALS (2 matches): July 14-15 =====
 
--- Match 101: W97 vs W98 - July 14, 5pm ET = 21:00 UTC
+-- Match 101: W97 vs W98 - July 14, 2pm CT = 19:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W97', 'W98', '2026-07-14 21:00:00'::timestamp, 'MetLife Stadium', 'New Jersey', 'SEMIFINAL', 101, 'SCHEDULED');
+VALUES ('W97', 'W98', '2026-07-14 19:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 'SEMIFINAL', 101, 'SCHEDULED');
 
--- Match 102: W99 vs W100 - July 15, 5pm ET = 21:00 UTC
+-- Match 102: W99 vs W100 - July 15, 3pm ET = 19:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W99', 'W100', '2026-07-15 21:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 'SEMIFINAL', 102, 'SCHEDULED');
+VALUES ('W99', 'W100', '2026-07-15 19:00:00'::timestamp, 'Mercedes-Benz Stadium', 'Atlanta', 'SEMIFINAL', 102, 'SCHEDULED');
 
 -- ===== THIRD PLACE MATCH: July 18 =====
 
--- Match 103: L101 vs L102 - July 18, 4pm ET = 20:00 UTC
+-- Match 103: L101 vs L102 - July 18, 5pm ET = 21:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('L101', 'L102', '2026-07-18 20:00:00'::timestamp, 'Hard Rock Stadium', 'Miami', 'THIRD_PLACE', 103, 'SCHEDULED');
+VALUES ('L101', 'L102', '2026-07-18 21:00:00'::timestamp, 'Hard Rock Stadium', 'Miami', 'THIRD_PLACE', 103, 'SCHEDULED');
 
 -- ===== FINAL: July 19 =====
 
--- Match 104: W101 vs W102 - July 19, 4pm ET = 20:00 UTC
+-- Match 104: W101 vs W102 - July 19, 3pm ET = 19:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('W101', 'W102', '2026-07-19 20:00:00'::timestamp, 'MetLife Stadium', 'New Jersey', 'FINAL', 104, 'SCHEDULED');
+VALUES ('W101', 'W102', '2026-07-19 19:00:00'::timestamp, 'MetLife Stadium', 'New Jersey', 'FINAL', 104, 'SCHEDULED');
