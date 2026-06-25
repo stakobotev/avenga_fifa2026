@@ -392,69 +392,69 @@ FROM teams ht, teams at WHERE ht.code = 'CRO' AND at.code = 'GHA';
 
 -- ===== ROUND OF 32 (16 matches): June 28 - July 4 =====
 
--- Match 73: 1A vs 3C/D/E - June 28, 12pm ET = 16:00 UTC
+-- Match 73: 2A vs 2B - June 28, 12pm PT = 19:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1A', '3C/D/E', '2026-06-28 16:00:00'::timestamp, 'MetLife Stadium', 'New Jersey', 'ROUND_OF_32', 73, 'SCHEDULED');
+VALUES ('2A', '2B', '2026-06-28 19:00:00'::timestamp, 'SoFi Stadium', 'Los Angeles', 'ROUND_OF_32', 73, 'SCHEDULED');
 
--- Match 74: 1B vs 3A/D/E/F - June 28, 4pm ET = 20:00 UTC
+-- Match 74: 1E vs 3rd - June 29, 4:30pm ET = 20:30 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1B', '3A/D/E/F', '2026-06-28 20:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 'ROUND_OF_32', 74, 'SCHEDULED');
+VALUES ('1E', '3rd', '2026-06-29 20:30:00'::timestamp, 'Gillette Stadium', 'Boston', 'ROUND_OF_32', 74, 'SCHEDULED');
 
--- Match 75: 1C vs 3B/E/F - June 28, 8pm ET = 00:00 UTC (June 29)
+-- Match 75: 1F vs 2C - June 29, 7pm CT = 01:00 UTC (June 30)
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1C', '3B/E/F', '2026-06-29 00:00:00'::timestamp, 'SoFi Stadium', 'Los Angeles', 'ROUND_OF_32', 75, 'SCHEDULED');
+VALUES ('1F', '2C', '2026-06-30 01:00:00'::timestamp, 'Estadio BBVA', 'Monterrey', 'ROUND_OF_32', 75, 'SCHEDULED');
 
--- Match 76: 1D vs 3A/B/C - June 29, 12pm ET = 16:00 UTC
+-- Match 76: 1C vs 2F - June 29, 12pm CT = 17:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1D', '3A/B/C', '2026-06-29 16:00:00'::timestamp, 'Hard Rock Stadium', 'Miami', 'ROUND_OF_32', 76, 'SCHEDULED');
+VALUES ('1C', '2F', '2026-06-29 17:00:00'::timestamp, 'NRG Stadium', 'Houston', 'ROUND_OF_32', 76, 'SCHEDULED');
 
--- Match 77: 1E vs 3A/B/C/D - June 29, 4pm ET = 20:00 UTC
+-- Match 77: 1I vs 3rd - June 30, 5pm ET = 21:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1E', '3A/B/C/D', '2026-06-29 20:00:00'::timestamp, 'Levi''s Stadium', 'San Francisco Bay Area', 'ROUND_OF_32', 77, 'SCHEDULED');
+VALUES ('1I', '3rd', '2026-06-30 21:00:00'::timestamp, 'MetLife Stadium', 'New Jersey', 'ROUND_OF_32', 77, 'SCHEDULED');
 
--- Match 78: 1F vs 3C/D/E/F - June 29, 8pm ET = 00:00 UTC (June 30)
+-- Match 78: 2E vs 2I - June 30, 12pm CT = 17:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1F', '3C/D/E/F', '2026-06-30 00:00:00'::timestamp, 'NRG Stadium', 'Houston', 'ROUND_OF_32', 78, 'SCHEDULED');
+VALUES ('2E', '2I', '2026-06-30 17:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 'ROUND_OF_32', 78, 'SCHEDULED');
 
--- Match 79: 2A vs 2B - June 30, 12pm ET = 16:00 UTC
+-- Match 79: 1A vs 3rd - June 30, 7pm CT = 01:00 UTC (July 1)
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('2A', '2B', '2026-06-30 16:00:00'::timestamp, 'Mercedes-Benz Stadium', 'Atlanta', 'ROUND_OF_32', 79, 'SCHEDULED');
+VALUES ('1A', '3rd', '2026-07-01 01:00:00'::timestamp, 'Estadio Azteca', 'Mexico City', 'ROUND_OF_32', 79, 'SCHEDULED');
 
--- Match 80: 1G vs 3G/H/I/J - June 30, 4pm ET = 20:00 UTC
+-- Match 80: 1L vs 3rd - July 1, 12pm ET = 16:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1G', '3G/H/I/J', '2026-06-30 20:00:00'::timestamp, 'Lincoln Financial Field', 'Philadelphia', 'ROUND_OF_32', 80, 'SCHEDULED');
+VALUES ('1L', '3rd', '2026-07-01 16:00:00'::timestamp, 'Mercedes-Benz Stadium', 'Atlanta', 'ROUND_OF_32', 80, 'SCHEDULED');
 
--- Match 81: 1H vs 3G/H/I - June 30, 8pm ET = 00:00 UTC (July 1)
+-- Match 81: 1D vs 3rd - July 1, 5pm PT = 00:00 UTC (July 2)
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1H', '3G/H/I', '2026-07-01 00:00:00'::timestamp, 'BC Place', 'Vancouver', 'ROUND_OF_32', 81, 'SCHEDULED');
+VALUES ('1D', '3rd', '2026-07-02 00:00:00'::timestamp, 'Levi''s Stadium', 'San Francisco Bay Area', 'ROUND_OF_32', 81, 'SCHEDULED');
 
--- Match 82: 1I vs 3J/K/L - July 1, 12pm ET = 16:00 UTC
+-- Match 82: 1G vs 3rd - July 1, 1pm PT = 20:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1I', '3J/K/L', '2026-07-01 16:00:00'::timestamp, 'BMO Field', 'Toronto', 'ROUND_OF_32', 82, 'SCHEDULED');
+VALUES ('1G', '3rd', '2026-07-01 20:00:00'::timestamp, 'Lumen Field', 'Seattle', 'ROUND_OF_32', 82, 'SCHEDULED');
 
--- Match 83: 1J vs 3H/I/J/K - July 1, 4pm ET = 20:00 UTC
+-- Match 83: 2K vs 2L - July 2, 7pm ET = 23:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1J', '3H/I/J/K', '2026-07-01 20:00:00'::timestamp, 'Estadio Azteca', 'Mexico City', 'ROUND_OF_32', 83, 'SCHEDULED');
+VALUES ('2K', '2L', '2026-07-02 23:00:00'::timestamp, 'BMO Field', 'Toronto', 'ROUND_OF_32', 83, 'SCHEDULED');
 
--- Match 84: 1K vs 3I/J/K/L - July 1, 8pm ET = 00:00 UTC (July 2)
+-- Match 84: 1H vs 2J - July 2, 12pm PT = 19:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1K', '3I/J/K/L', '2026-07-02 00:00:00'::timestamp, 'Gillette Stadium', 'Boston', 'ROUND_OF_32', 84, 'SCHEDULED');
+VALUES ('1H', '2J', '2026-07-02 19:00:00'::timestamp, 'SoFi Stadium', 'Los Angeles', 'ROUND_OF_32', 84, 'SCHEDULED');
 
--- Match 85: 2C vs 2D - July 2, 12pm ET = 16:00 UTC
+-- Match 85: 1B vs 3rd - July 2, 8pm PT = 03:00 UTC (July 3)
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('2C', '2D', '2026-07-02 16:00:00'::timestamp, 'MetLife Stadium', 'New Jersey', 'ROUND_OF_32', 85, 'SCHEDULED');
+VALUES ('1B', '3rd', '2026-07-03 03:00:00'::timestamp, 'BC Place', 'Vancouver', 'ROUND_OF_32', 85, 'SCHEDULED');
 
--- Match 86: 2E vs 2F - July 2, 4pm ET = 20:00 UTC
+-- Match 86: 1J vs 2H - July 3, 6pm ET = 22:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('2E', '2F', '2026-07-02 20:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 'ROUND_OF_32', 86, 'SCHEDULED');
+VALUES ('1J', '2H', '2026-07-03 22:00:00'::timestamp, 'Hard Rock Stadium', 'Miami', 'ROUND_OF_32', 86, 'SCHEDULED');
 
--- Match 87: 1L vs 3G/H/K/L - July 3, 4pm ET = 20:00 UTC
+-- Match 87: 1K vs 3rd - July 3, 8:30pm CT = 01:30 UTC (July 4)
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('1L', '3G/H/K/L', '2026-07-03 20:00:00'::timestamp, 'SoFi Stadium', 'Los Angeles', 'ROUND_OF_32', 87, 'SCHEDULED');
+VALUES ('1K', '3rd', '2026-07-04 01:30:00'::timestamp, 'Arrowhead Stadium', 'Kansas City', 'ROUND_OF_32', 87, 'SCHEDULED');
 
--- Match 88: 2G vs 2H - July 3, 8pm ET = 00:00 UTC (July 4)
+-- Match 88: 2D vs 2G - July 3, 1pm CT = 18:00 UTC
 INSERT INTO matches (home_placeholder, away_placeholder, match_date, venue, city, stage, match_number, status)
-VALUES ('2G', '2H', '2026-07-04 00:00:00'::timestamp, 'Hard Rock Stadium', 'Miami', 'ROUND_OF_32', 88, 'SCHEDULED');
+VALUES ('2D', '2G', '2026-07-03 18:00:00'::timestamp, 'AT&T Stadium', 'Dallas', 'ROUND_OF_32', 88, 'SCHEDULED');
 
 -- ===== ROUND OF 16 (8 matches): July 4-7 =====
 

@@ -317,36 +317,27 @@ public class DataInitializer implements CommandLineRunner {
         // All times in US Eastern Time (ET)
         ZoneId et = ZoneId.of("America/New_York");
 
-        // Round of 32: June 28 - July 3 (16 matches)
-        // Placeholders: 1A = 1st in Group A, 2B = 2nd in Group B, 3rd = Best 3rd place
+        // Round of 32: June 28 - July 4 (16 matches), official FIFA 2026 bracket.
+        // Placeholders: 1A = 1st in Group A, 2B = 2nd in Group B, 3rd = best 3rd place.
+        // Times use UTC directly because venues span several US/CA time zones.
+        ZoneId utc = ZoneId.of("UTC");
 
-        // June 28 - Round of 32 Day 1
-        createKnockoutMatch(ZonedDateTime.of(2026, 6, 28, 12, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "1A", "3rd");
-        createKnockoutMatch(ZonedDateTime.of(2026, 6, 28, 16, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "1B", "3rd");
-        createKnockoutMatch(ZonedDateTime.of(2026, 6, 28, 20, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "1C", "3rd");
-
-        // June 29 - Round of 32 Day 2
-        createKnockoutMatch(ZonedDateTime.of(2026, 6, 29, 12, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "1D", "3rd");
-        createKnockoutMatch(ZonedDateTime.of(2026, 6, 29, 16, 0, 0, 0, et), "Levi's Stadium", "San Francisco Bay Area", Match.Stage.ROUND_OF_32, matchNumber++, "1E", "3rd");
-        createKnockoutMatch(ZonedDateTime.of(2026, 6, 29, 20, 0, 0, 0, et), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_32, matchNumber++, "1F", "3rd");
-
-        // June 30 - Round of 32 Day 3
-        createKnockoutMatch(ZonedDateTime.of(2026, 6, 30, 12, 0, 0, 0, et), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_32, matchNumber++, "1G", "3rd");
-        createKnockoutMatch(ZonedDateTime.of(2026, 6, 30, 16, 0, 0, 0, et), "Lincoln Financial Field", "Philadelphia", Match.Stage.ROUND_OF_32, matchNumber++, "1H", "3rd");
-        createKnockoutMatch(ZonedDateTime.of(2026, 6, 30, 20, 0, 0, 0, et), "BC Place", "Vancouver", Match.Stage.ROUND_OF_32, matchNumber++, "1I", "2C");
-
-        // July 1 - Round of 32 Day 4
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 1, 12, 0, 0, 0, et), "BMO Field", "Toronto", Match.Stage.ROUND_OF_32, matchNumber++, "1J", "2D");
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 1, 16, 0, 0, 0, et), "Estadio Azteca", "Mexico City", Match.Stage.ROUND_OF_32, matchNumber++, "1K", "2E");
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 1, 20, 0, 0, 0, et), "Gillette Stadium", "Boston", Match.Stage.ROUND_OF_32, matchNumber++, "1L", "2F");
-
-        // July 2 - Round of 32 Day 5
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 2, 12, 0, 0, 0, et), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "2A", "2G");
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 2, 16, 0, 0, 0, et), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "2B", "2H");
-
-        // July 3 - Round of 32 Day 6
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 3, 16, 0, 0, 0, et), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "2I", "2J");
-        createKnockoutMatch(ZonedDateTime.of(2026, 7, 3, 20, 0, 0, 0, et), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "2K", "2L");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 28, 19, 0, 0, 0, utc), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "2A", "2B");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 29, 20, 30, 0, 0, utc), "Gillette Stadium", "Boston", Match.Stage.ROUND_OF_32, matchNumber++, "1E", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 30, 1, 0, 0, 0, utc), "Estadio BBVA", "Monterrey", Match.Stage.ROUND_OF_32, matchNumber++, "1F", "2C");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 29, 17, 0, 0, 0, utc), "NRG Stadium", "Houston", Match.Stage.ROUND_OF_32, matchNumber++, "1C", "2F");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 30, 21, 0, 0, 0, utc), "MetLife Stadium", "New Jersey", Match.Stage.ROUND_OF_32, matchNumber++, "1I", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 6, 30, 17, 0, 0, 0, utc), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "2E", "2I");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 1, 1, 0, 0, 0, utc), "Estadio Azteca", "Mexico City", Match.Stage.ROUND_OF_32, matchNumber++, "1A", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 1, 16, 0, 0, 0, utc), "Mercedes-Benz Stadium", "Atlanta", Match.Stage.ROUND_OF_32, matchNumber++, "1L", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 2, 0, 0, 0, 0, utc), "Levi's Stadium", "San Francisco Bay Area", Match.Stage.ROUND_OF_32, matchNumber++, "1D", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 1, 20, 0, 0, 0, utc), "Lumen Field", "Seattle", Match.Stage.ROUND_OF_32, matchNumber++, "1G", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 2, 23, 0, 0, 0, utc), "BMO Field", "Toronto", Match.Stage.ROUND_OF_32, matchNumber++, "2K", "2L");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 2, 19, 0, 0, 0, utc), "SoFi Stadium", "Los Angeles", Match.Stage.ROUND_OF_32, matchNumber++, "1H", "2J");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 3, 3, 0, 0, 0, utc), "BC Place", "Vancouver", Match.Stage.ROUND_OF_32, matchNumber++, "1B", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 3, 22, 0, 0, 0, utc), "Hard Rock Stadium", "Miami", Match.Stage.ROUND_OF_32, matchNumber++, "1J", "2H");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 4, 1, 30, 0, 0, utc), "Arrowhead Stadium", "Kansas City", Match.Stage.ROUND_OF_32, matchNumber++, "1K", "3rd");
+        createKnockoutMatch(ZonedDateTime.of(2026, 7, 3, 18, 0, 0, 0, utc), "AT&T Stadium", "Dallas", Match.Stage.ROUND_OF_32, matchNumber++, "2D", "2G");
 
         log.info("Initialized Round of 32 matches (teams TBD)");
 
