@@ -124,8 +124,16 @@ interface BreakdownRow {
   color: string;
 }
 
-export default function MyPredictions() {
+interface MyPredictionsProps {
+  // When set (admin viewing another user from the leaderboard), load that user's
+  // data instead of the logged-in user's. Omitted for the normal "my" view.
+  userId?: number;
+  displayName?: string;
+}
+
+export default function MyPredictions({ userId, displayName }: MyPredictionsProps = {}) {
   const { user } = useAuthStore();
+  const isViewingOther = userId != null;
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [bonusPredictions, setBonusPredictions] = useState<BonusPrediction[]>([]);
   const [stats, setStats] = useState<LeaderboardEntry | null>(null);
@@ -134,23 +142,31 @@ export default function MyPredictions() {
 
   useEffect(() => {
     const fetchAll = async () => {
+      setLoading(true);
       try {
-        const [preds, bonus, myStats] = await Promise.all([
-          predictionApi.getMyPredictions(),
-          predictionApi.getMyBonusPredictions(),
-          leaderboardApi.getMyStats(),
+        const [preds, bonus, entry] = await Promise.all([
+          isViewingOther ? predictionApi.getUserPredictions(userId) : predictionApi.getMyPredictions(),
+          isViewingOther ? predictionApi.getUserBonusPredictions(userId) : predictionApi.getMyBonusPredictions(),
+          // Stats for another user come from the global leaderboard (gives rank too).
+          isViewingOther
+            ? leaderboardApi.getGlobal().then(list => list.find(e => e.user.id === userId) ?? null)
+            : leaderboardApi.getMyStats(),
         ]);
         setPredictions(preds);
         setBonusPredictions(bonus);
-        setStats(myStats);
+        setStats(entry);
       } catch (err) {
-        console.error('Failed to load my predictions:', err);
+        console.error('Failed to load predictions:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchAll();
-  }, []);
+  }, [isViewingOther, userId]);
+
+  const headerName = isViewingOther
+    ? (displayName ?? stats?.user?.displayName ?? stats?.user?.username ?? 'User')
+    : (user?.displayName ?? user?.username ?? 'You');
 
   const breakdown = useMemo<BreakdownRow[]>(() => {
     const counts: Record<PointReason, number> = {
@@ -225,9 +241,13 @@ export default function MyPredictions() {
       <div className="bg-gradient-to-r from-purple-800 to-purple-900 rounded-2xl p-6 text-white">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold mb-1">My Predictions</h1>
+            <h1 className="text-2xl font-bold mb-1">
+              {isViewingOther ? `${headerName}'s Predictions` : 'My Predictions'}
+            </h1>
             <p className="text-purple-200">
-              {user?.displayName ? `${user.displayName}'s` : 'Your'} prediction history and how every point was earned
+              {isViewingOther
+                ? `Viewing ${headerName}'s prediction history (admin)`
+                : `${headerName === 'You' ? 'Your' : `${headerName}'s`} prediction history and how every point was earned`}
             </p>
           </div>
           <div className="text-right">

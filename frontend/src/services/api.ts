@@ -245,6 +245,15 @@ export const predictionApi = {
     const { data } = await api.get('/predictions/bonus');
     return data;
   },
+  // Admin-only: another user's predictions (e.g. opened from the leaderboard).
+  getUserPredictions: async (userId: number): Promise<Prediction[]> => {
+    const { data } = await api.get(`/predictions/user/${userId}`);
+    return data;
+  },
+  getUserBonusPredictions: async (userId: number): Promise<BonusPrediction[]> => {
+    const { data } = await api.get(`/predictions/bonus/user/${userId}`);
+    return data;
+  },
 };
 
 // Leagues

@@ -4,6 +4,7 @@ import { leaderboardApi } from '../services/api';
 import type { LeaderboardEntry } from '../types';
 import { REGION_DISPLAY_NAMES } from '../types';
 import { useAuthStore } from '../store/authStore';
+import AdminUserLink from '../components/AdminUserLink';
 import clsx from 'clsx';
 
 const REGIONS = ['BG_EG', 'CZ_SK', 'PL_MY', 'SEE', 'UA', 'LATAM', 'OTHER'];
@@ -206,7 +207,12 @@ export default function Leaderboard() {
                             'font-medium',
                             isCurrentUser ? 'text-purple-900' : 'text-gray-900'
                           )}>
-                            {entry.user.displayName || entry.user.username}
+                            <AdminUserLink
+                              userId={entry.user.id}
+                              displayName={entry.user.displayName || entry.user.username}
+                            >
+                              {entry.user.displayName || entry.user.username}
+                            </AdminUserLink>
                             {isCurrentUser && <span className="ml-2 text-xs text-purple-600">(You)</span>}
                           </p>
                         </div>

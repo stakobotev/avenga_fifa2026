@@ -60,6 +60,19 @@ public class PredictionController {
         return ResponseEntity.ok(predictionService.getUserBonusPredictions(user.getId()));
     }
 
+    // Admin-only: inspect another user's predictions (e.g. from the leaderboard).
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PredictionDTO>> getUserPredictions(@PathVariable Long userId) {
+        return ResponseEntity.ok(predictionService.getUserPredictions(userId));
+    }
+
+    @GetMapping("/bonus/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<BonusPredictionDTO>> getUserBonusPredictions(@PathVariable Long userId) {
+        return ResponseEntity.ok(predictionService.getUserBonusPredictions(userId));
+    }
+
     @PostMapping("/bonus/award-top-scorer")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TopScorerAwardResult> awardTopScorer(@RequestBody Map<String, String> request) {

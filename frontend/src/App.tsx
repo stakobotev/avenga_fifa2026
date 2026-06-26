@@ -17,6 +17,7 @@ import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import BonusPredictions from './pages/BonusPredictions';
 import MyPredictions from './pages/MyPredictions';
+import UserPredictions from './pages/UserPredictions';
 import Statistics from './pages/Statistics';
 import Help from './pages/Help';
 
@@ -140,6 +141,7 @@ export default function App() {
           <Route path="/knockout" element={<Knockout />} />
           <Route path="/bonus" element={<BonusPredictions />} />
           <Route path="/my-predictions" element={<MyPredictions />} />
+          <Route path="/users/:userId/predictions" element={<UserPredictions />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/leagues" element={<Leagues />} />

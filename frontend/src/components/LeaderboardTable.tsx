@@ -1,6 +1,7 @@
 import { Trophy, Medal, Award } from 'lucide-react';
 import type { LeaderboardEntry } from '../types';
 import { useAuthStore } from '../store/authStore';
+import AdminUserLink from './AdminUserLink';
 import clsx from 'clsx';
 
 interface LeaderboardTableProps {
@@ -62,7 +63,12 @@ export default function LeaderboardTable({ entries, showDetails = true }: Leader
                   </div>
                   <div className="ml-3">
                     <div className="font-medium text-gray-900">
-                      {entry.user.displayName || entry.user.username}
+                      <AdminUserLink
+                        userId={entry.user.id}
+                        displayName={entry.user.displayName || entry.user.username}
+                      >
+                        {entry.user.displayName || entry.user.username}
+                      </AdminUserLink>
                       {entry.user.id === user?.id && (
                         <span className="ml-2 text-xs text-avenga-red">(You)</span>
                       )}
