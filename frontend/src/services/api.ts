@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { isDevMode } from '../config/devAuth';
 import { useAuthStore } from '../store/authStore';
 import type {
@@ -23,6 +23,13 @@ const api = axios.create({
   withCredentials: isDevMode(), // Send session cookies in dev mode
 });
 
+// Requests may carry retry bookkeeping so a 401 can be transparently replayed
+// with a fresh token (see the response interceptor).
+interface RetryableConfig extends InternalAxiosRequestConfig {
+  _retried?: boolean;
+  _forceRefresh?: boolean;
+}
+
 // Request interceptor to add Azure AD token (only in production mode)
 api.interceptors.request.use(async (config) => {
   // Skip MSAL token acquisition in dev mode - uses session cookies instead
@@ -38,13 +45,20 @@ api.interceptors.request.use(async (config) => {
       const response = await msalInstance.acquireTokenSilent({
         ...loginRequest,
         account: accounts[0],
+        // Force a fresh token when replaying a request that was just rejected.
+        forceRefresh: (config as RetryableConfig)._forceRefresh === true,
       });
       // Use ID token for our backend (has correct audience)
       // Access token audience is graph.microsoft.com when using Graph scopes
       config.headers.Authorization = `Bearer ${response.idToken}`;
     } catch (error) {
-      console.error('Failed to acquire token silently:', error);
-      // Token acquisition failed - redirect to login will happen via MSAL
+      // Never send the request unauthenticated: it would 401 and the user's
+      // action (e.g. saving a prediction) would be silently lost. Recover the
+      // session and abort this request instead, so the caller sees a failure
+      // and any draft input is preserved.
+      console.error('Silent token acquisition failed; aborting request and recovering session', error);
+      handleSessionExpired();
+      throw new axios.Cancel('Session expired before request was sent');
     }
   }
   return config;
@@ -109,8 +123,20 @@ api.interceptors.response.use(
     sessionStorage.removeItem(REAUTH_GUARD_KEY);
     return response;
   },
-  (error) => {
-    if (error.response?.status === 401) {
+  async (error) => {
+    const original = error.config as RetryableConfig | undefined;
+    const status = error.response?.status;
+
+    // One transparent retry for an authenticated call whose token the server
+    // rejected (e.g. it expired between acquisition and the server check). Our
+    // writes are idempotent upserts, so replaying with a fresh token is safe.
+    if (status === 401 && original && !original._retried && !isDevMode()) {
+      original._retried = true;
+      original._forceRefresh = true;
+      return api(original);
+    }
+
+    if (status === 401) {
       handleSessionExpired();
     }
     return Promise.reject(error);

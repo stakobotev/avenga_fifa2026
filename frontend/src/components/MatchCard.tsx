@@ -1,10 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Lock, Check, AlertCircle } from 'lucide-react';
 import type { Match, Prediction } from '../types';
 import { formatMatchDate, formatMatchTime, getCountdown, isMatchLocked } from '../utils/date';
 import { predictionApi } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import clsx from 'clsx';
+
+// In-progress prediction input is mirrored to localStorage so it survives a
+// page reload or a forced re-auth redirect (otherwise a session expiry mid-edit
+// silently discards what the user typed). Cleared once the save is confirmed.
+interface PredictionDraft {
+  h: string;
+  a: string;
+  adv?: number;
+}
+
+const draftKey = (matchId: number) => `pred_draft_${matchId}`;
+
+function readDraft(matchId: number): PredictionDraft | null {
+  try {
+    const raw = localStorage.getItem(draftKey(matchId));
+    return raw ? (JSON.parse(raw) as PredictionDraft) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(matchId: number, draft: PredictionDraft) {
+  try {
+    localStorage.setItem(draftKey(matchId), JSON.stringify(draft));
+  } catch {
+    /* localStorage unavailable (private mode / quota) — non-fatal */
+  }
+}
+
+function clearDraft(matchId: number) {
+  try {
+    localStorage.removeItem(draftKey(matchId));
+  } catch {
+    /* non-fatal */
+  }
+}
 
 // Map FIFA 3-letter codes to ISO 2-letter codes for flag CDN
 const FIFA_TO_ISO: Record<string, string> = {
@@ -37,10 +73,12 @@ interface MatchCardProps {
 
 export default function MatchCard({ match, prediction: initialPrediction, onPredictionSaved }: MatchCardProps) {
   const { isAuthenticated } = useAuthStore();
+  // Prefer an unsaved draft (from a prior interrupted edit) over the saved value.
+  const initialDraft = useMemo(() => readDraft(match.id), [match.id]);
   const [prediction, setPrediction] = useState(initialPrediction);
-  const [homeScore, setHomeScore] = useState(prediction?.predictedHomeScore?.toString() || '');
-  const [awayScore, setAwayScore] = useState(prediction?.predictedAwayScore?.toString() || '');
-  const [advancingTeam, setAdvancingTeam] = useState<number | undefined>(prediction?.predictedAdvancingTeamId);
+  const [homeScore, setHomeScore] = useState(initialDraft?.h ?? (initialPrediction?.predictedHomeScore?.toString() || ''));
+  const [awayScore, setAwayScore] = useState(initialDraft?.a ?? (initialPrediction?.predictedAwayScore?.toString() || ''));
+  const [advancingTeam, setAdvancingTeam] = useState<number | undefined>(initialDraft?.adv ?? initialPrediction?.predictedAdvancingTeamId);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(getCountdown(match.matchDate));
@@ -61,10 +99,34 @@ export default function MatchCard({ match, prediction: initialPrediction, onPred
 
   useEffect(() => {
     setPrediction(initialPrediction);
-    setHomeScore(initialPrediction?.predictedHomeScore?.toString() || '');
-    setAwayScore(initialPrediction?.predictedAwayScore?.toString() || '');
-    setAdvancingTeam(initialPrediction?.predictedAdvancingTeamId);
-  }, [initialPrediction]);
+    // A draft (unsaved edit) still wins over the server value after a refetch.
+    const draft = readDraft(match.id);
+    setHomeScore(draft?.h ?? (initialPrediction?.predictedHomeScore?.toString() || ''));
+    setAwayScore(draft?.a ?? (initialPrediction?.predictedAwayScore?.toString() || ''));
+    setAdvancingTeam(draft?.adv ?? initialPrediction?.predictedAdvancingTeamId);
+  }, [initialPrediction, match.id]);
+
+  // Mirror in-progress edits to localStorage; clear the draft once it matches the
+  // saved prediction, is empty, or the match has locked (nothing left to recover).
+  useEffect(() => {
+    if (locked) {
+      clearDraft(match.id);
+      return;
+    }
+    if (!isAuthenticated) return;
+
+    const matchesSaved =
+      !!prediction &&
+      homeScore === (prediction.predictedHomeScore?.toString() ?? '') &&
+      awayScore === (prediction.predictedAwayScore?.toString() ?? '') &&
+      advancingTeam === prediction.predictedAdvancingTeamId;
+
+    if (matchesSaved || (homeScore === '' && awayScore === '')) {
+      clearDraft(match.id);
+    } else {
+      writeDraft(match.id, { h: homeScore, a: awayScore, adv: advancingTeam });
+    }
+  }, [homeScore, awayScore, advancingTeam, locked, isAuthenticated, prediction, match.id]);
 
   const handleSave = async () => {
     if (!homeScore || !awayScore) {
@@ -88,6 +150,7 @@ export default function MatchCard({ match, prediction: initialPrediction, onPred
         predictedAdvancingTeamId: advancingTeam,
       });
       setPrediction(saved);
+      clearDraft(match.id); // confirmed persisted — drop the local draft
       onPredictionSaved?.();
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
