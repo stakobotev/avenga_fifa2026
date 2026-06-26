@@ -1,5 +1,6 @@
 package com.fifa2026.prode.service;
 
+import com.fifa2026.prode.dto.MatchPredictionBreakdownDTO;
 import com.fifa2026.prode.dto.StatisticsOverviewDTO;
 import com.fifa2026.prode.dto.StatisticsOverviewDTO.*;
 import com.fifa2026.prode.dto.TeamDTO;
@@ -216,6 +217,59 @@ public class StatisticsService {
                     .build());
         }
         return result;
+    }
+
+    /**
+     * For a single finished match (by match number), list who predicted the exact
+     * score and who predicted only the correct winner (correct result, not exact).
+     */
+    @Transactional(readOnly = true)
+    public MatchPredictionBreakdownDTO getMatchPredictionBreakdown(Integer matchNumber) {
+        Match match = matchRepository.findByMatchNumber(matchNumber)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
+
+        List<MatchPredictionBreakdownDTO.Row> exact = new ArrayList<>();
+        List<MatchPredictionBreakdownDTO.Row> winner = new ArrayList<>();
+
+        if (match.getHomeScore() != null && match.getAwayScore() != null) {
+            for (Prediction p : predictionRepository.findByMatch(match)) {
+                if (isExact(p)) {
+                    exact.add(toRow(p));
+                } else if (isCorrectResult(p)) {
+                    winner.add(toRow(p));
+                }
+            }
+        }
+
+        Comparator<MatchPredictionBreakdownDTO.Row> byName =
+                Comparator.comparing(r -> r.getDisplayName() != null ? r.getDisplayName() : r.getUsername(),
+                        String.CASE_INSENSITIVE_ORDER);
+        exact.sort(byName);
+        winner.sort(byName);
+
+        return MatchPredictionBreakdownDTO.builder()
+                .matchNumber(match.getMatchNumber())
+                .stage(match.getStage().name())
+                .homeTeam(TeamDTO.fromEntity(match.getHomeTeam()))
+                .awayTeam(TeamDTO.fromEntity(match.getAwayTeam()))
+                .homeScore(match.getHomeScore())
+                .awayScore(match.getAwayScore())
+                .exactScorers(exact)
+                .winnerScorers(winner)
+                .build();
+    }
+
+    private MatchPredictionBreakdownDTO.Row toRow(Prediction p) {
+        User u = p.getUser();
+        return MatchPredictionBreakdownDTO.Row.builder()
+                .userId(u.getId())
+                .displayName(u.getDisplayName())
+                .username(u.getUsername())
+                .region(u.getRegion().name())
+                .regionDisplayName(u.getRegion().getDisplayName())
+                .predictedHomeScore(p.getPredictedHomeScore())
+                .predictedAwayScore(p.getPredictedAwayScore())
+                .build();
     }
 
     // --- Scoring predicates (mirror ScoringService 1X2 semantics) ---

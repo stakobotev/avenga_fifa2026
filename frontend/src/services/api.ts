@@ -12,7 +12,8 @@ import type {
   PredictionRequest,
   BonusPredictionRequest,
   LeagueRequest,
-  StatisticsOverview
+  StatisticsOverview,
+  MatchPredictionBreakdown
 } from '../types';
 
 const api = axios.create({
@@ -315,6 +316,11 @@ export const leaderboardApi = {
 export const statisticsApi = {
   getOverview: async (): Promise<StatisticsOverview> => {
     const { data } = await api.get('/statistics/overview');
+    return data;
+  },
+  // Admin-only: who predicted exact / correct winner for a single match.
+  getMatchBreakdown: async (matchNumber: number): Promise<MatchPredictionBreakdown> => {
+    const { data } = await api.get(`/statistics/match/${matchNumber}/predictions`);
     return data;
   },
 };

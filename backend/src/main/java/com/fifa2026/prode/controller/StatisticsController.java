@@ -1,10 +1,12 @@
 package com.fifa2026.prode.controller;
 
+import com.fifa2026.prode.dto.MatchPredictionBreakdownDTO;
 import com.fifa2026.prode.dto.StatisticsOverviewDTO;
 import com.fifa2026.prode.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,5 +20,12 @@ public class StatisticsController {
     @GetMapping("/overview")
     public ResponseEntity<StatisticsOverviewDTO> getOverview() {
         return ResponseEntity.ok(statisticsService.getOverview());
+    }
+
+    // Who predicted the exact score / correct winner for one (played) match.
+    @GetMapping("/match/{matchNumber}/predictions")
+    public ResponseEntity<MatchPredictionBreakdownDTO> getMatchPredictionBreakdown(
+            @PathVariable Integer matchNumber) {
+        return ResponseEntity.ok(statisticsService.getMatchPredictionBreakdown(matchNumber));
     }
 }

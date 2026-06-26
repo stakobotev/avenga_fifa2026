@@ -19,6 +19,7 @@ import BonusPredictions from './pages/BonusPredictions';
 import MyPredictions from './pages/MyPredictions';
 import UserPredictions from './pages/UserPredictions';
 import Statistics from './pages/Statistics';
+import MatchPredictionStats from './pages/MatchPredictionStats';
 import Help from './pages/Help';
 
 const isDev = isDevMode();
@@ -144,6 +145,7 @@ export default function App() {
           <Route path="/users/:userId/predictions" element={<UserPredictions />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/statistics" element={<Statistics />} />
+          <Route path="/statistics/match/:matchNumber" element={<MatchPredictionStats />} />
           <Route path="/leagues" element={<Leagues />} />
           <Route path="/leagues/:id" element={<LeagueDetail />} />
           <Route path="/profile" element={<Profile />} />

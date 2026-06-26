@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users, ClipboardList, Target, UserCheck, Star, Trophy, Globe,
 } from 'lucide-react';
@@ -87,6 +88,7 @@ function TeamColumn({
 }
 
 export default function Statistics() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<StatisticsOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -261,7 +263,15 @@ export default function Statistics() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {stats.matches.map(m => (
-              <div key={m.matchNumber} className="rounded-xl border border-white/10 bg-slate-800/50 p-4">
+              <div
+                key={m.matchNumber}
+                onClick={() => navigate(`/statistics/match/${m.matchNumber}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/statistics/match/${m.matchNumber}`); }}
+                title="View who predicted exact / correct winner"
+                className="cursor-pointer rounded-xl border border-white/10 bg-slate-800/50 p-4 transition-colors hover:border-amber-400/50 hover:bg-slate-800"
+              >
                 <div className="mb-3 flex items-center justify-center gap-1 text-[11px] uppercase tracking-wide text-gray-400">
                   Match {m.matchNumber} · {m.stage.replace(/_/g, ' ')}
                 </div>

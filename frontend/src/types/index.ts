@@ -183,3 +183,25 @@ export interface StatisticsOverview {
   regionsTotal: StatRegion;
   matches: StatMatch[];
 }
+
+// Per-match breakdown (admin) of who predicted exact / correct winner.
+export interface MatchPredictionUser {
+  userId: number;
+  displayName?: string;
+  username: string;
+  region?: string;
+  regionDisplayName?: string;
+  predictedHomeScore: number;
+  predictedAwayScore: number;
+}
+
+export interface MatchPredictionBreakdown {
+  matchNumber: number;
+  stage: string;
+  homeTeam?: Team;
+  awayTeam?: Team;
+  homeScore: number;
+  awayScore: number;
+  exactScorers: MatchPredictionUser[];
+  winnerScorers: MatchPredictionUser[];
+}
