@@ -1,6 +1,7 @@
 package com.fifa2026.prode.config;
 
 import com.fifa2026.prode.security.AzureAdJwtConverter;
+import com.fifa2026.prode.security.LoggingAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final AzureAdJwtConverter azureAdJwtConverter;
+    private final LoggingAuthenticationEntryPoint loggingAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -46,6 +48,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .oauth2ResourceServer(oauth2 -> oauth2
+                .authenticationEntryPoint(loggingAuthenticationEntryPoint)
                 .jwt(jwt -> jwt
                     .jwtAuthenticationConverter(azureAdJwtConverter)
                 )
