@@ -87,6 +87,14 @@ export default function MatchCard({ match, prediction: initialPrediction, onPred
   const isKnockout = match.stage !== 'GROUP';
   const teamsConfirmed = match.teamsConfirmed;
 
+  // Knockout: a decisive score determines who advances (the higher score), so the
+  // user can't pick. Only a draw (0-0, 1-1, …) lets them choose the penalty winner.
+  const homeNum = homeScore === '' ? null : parseInt(homeScore);
+  const awayNum = awayScore === '' ? null : parseInt(awayScore);
+  const bothScores = homeNum != null && awayNum != null && !Number.isNaN(homeNum) && !Number.isNaN(awayNum);
+  const isDrawScore = bothScores && homeNum === awayNum;
+  const isDecisiveScore = bothScores && homeNum !== awayNum;
+
   useEffect(() => {
     if (locked) return;
 
@@ -127,6 +135,14 @@ export default function MatchCard({ match, prediction: initialPrediction, onPred
       writeDraft(match.id, { h: homeScore, a: awayScore, adv: advancingTeam });
     }
   }, [homeScore, awayScore, advancingTeam, locked, isAuthenticated, prediction, match.id]);
+
+  // On a decisive knockout score, force the advancing team to the higher score.
+  useEffect(() => {
+    if (!isKnockout || !match.homeTeam || !match.awayTeam) return;
+    if (isDecisiveScore && homeNum != null && awayNum != null) {
+      setAdvancingTeam(homeNum > awayNum ? match.homeTeam.id : match.awayTeam.id);
+    }
+  }, [isDecisiveScore, homeNum, awayNum, isKnockout, match.homeTeam, match.awayTeam]);
 
   const handleSave = async () => {
     if (!homeScore || !awayScore) {
@@ -318,18 +334,23 @@ export default function MatchCard({ match, prediction: initialPrediction, onPred
         </div>
       </div>
 
-      {/* Knockout - Who Advances */}
+      {/* Knockout - Who Advances. Auto-set from a decisive score; user picks only on a draw. */}
       {isKnockout && canPredict && match.homeTeam && match.awayTeam && (
         <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2 text-center">Who advances?</p>
+          <p className="text-sm text-gray-600 mb-2 text-center">
+            {isDrawScore ? 'Draw — who advances on penalties?' : 'Who advances?'}
+          </p>
           <div className="flex justify-center space-x-4">
             <button
-              onClick={() => setAdvancingTeam(match.homeTeam!.id)}
+              type="button"
+              disabled={!isDrawScore}
+              onClick={() => { if (isDrawScore) setAdvancingTeam(match.homeTeam!.id); }}
               className={clsx(
                 'px-4 py-2 rounded-lg border-2 transition-all flex items-center',
                 advancingTeam === match.homeTeam!.id
                   ? 'border-avenga-red bg-red-50 text-avenga-red'
-                  : 'border-gray-300 hover:border-gray-400'
+                  : 'border-gray-300',
+                isDrawScore ? 'hover:border-gray-400 cursor-pointer' : 'cursor-not-allowed opacity-60'
               )}
             >
               <img
@@ -340,12 +361,15 @@ export default function MatchCard({ match, prediction: initialPrediction, onPred
               {match.homeTeam!.code}
             </button>
             <button
-              onClick={() => setAdvancingTeam(match.awayTeam!.id)}
+              type="button"
+              disabled={!isDrawScore}
+              onClick={() => { if (isDrawScore) setAdvancingTeam(match.awayTeam!.id); }}
               className={clsx(
                 'px-4 py-2 rounded-lg border-2 transition-all flex items-center',
                 advancingTeam === match.awayTeam!.id
                   ? 'border-avenga-red bg-red-50 text-avenga-red'
-                  : 'border-gray-300 hover:border-gray-400'
+                  : 'border-gray-300',
+                isDrawScore ? 'hover:border-gray-400 cursor-pointer' : 'cursor-not-allowed opacity-60'
               )}
             >
               <img
@@ -356,6 +380,13 @@ export default function MatchCard({ match, prediction: initialPrediction, onPred
               {match.awayTeam!.code}
             </button>
           </div>
+          <p className="mt-2 text-center text-xs text-gray-400">
+            {isDecisiveScore
+              ? 'Advances automatically from your score'
+              : isDrawScore
+                ? 'Pick who goes through on penalties'
+                : 'Enter a score — the higher score advances automatically'}
+          </p>
         </div>
       )}
 
