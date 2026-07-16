@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Trophy, Calendar, Target, TrendingUp, ChevronRight, Award, MapPin } from 'lucide-react';
+import clsx from 'clsx';
+import { Trophy, Calendar, Target, TrendingUp, ChevronRight, Award, MapPin, Crown } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { matchApi, predictionApi, leaderboardApi, type TopScorer } from '../services/api';
 import type { Match, Prediction, LeaderboardEntry, BonusPrediction } from '../types';
@@ -30,6 +31,109 @@ const getFlagUrl = (code: string): string => {
   return `https://flagcdn.com/24x18/${isoCode}.png`;
 };
 
+// Best possible points from a single unplayed match (exact score).
+const MAX_POINTS_PER_MATCH = 5;
+
+interface RaceEntry extends LeaderboardEntry {
+  ceiling: number; // best final total if every remaining pick lands perfectly
+}
+
+// Given current standings (by match points) and how many matches are still to be
+// played, work out — for each user — the HIGHEST podium place they can still
+// reach in a best case. A rival is "out of reach above" someone only if the
+// rival's current points already exceed that someone's best-possible final.
+function computeRace(standings: LeaderboardEntry[], remaining: number) {
+  const gain = MAX_POINTS_PER_MATCH * remaining;
+  const withCeiling: RaceEntry[] = standings.map(e => ({ ...e, ceiling: e.matchPoints + gain }));
+
+  const first: RaceEntry[] = [];
+  const second: RaceEntry[] = [];
+  const third: RaceEntry[] = [];
+
+  for (const e of withCeiling) {
+    // How many OTHER users are guaranteed to finish above this user's best case?
+    const guaranteedAbove = withCeiling.filter(
+      o => o.user?.id !== e.user?.id && o.matchPoints > e.ceiling,
+    ).length;
+
+    if (guaranteedAbove === 0) first.push(e);        // can still finish 1st
+    else if (guaranteedAbove === 1) second.push(e);  // best case is 2nd
+    else if (guaranteedAbove === 2) third.push(e);   // best case is 3rd
+  }
+
+  const byPotential = (a: RaceEntry, b: RaceEntry) =>
+    b.matchPoints - a.matchPoints || b.ceiling - a.ceiling;
+  first.sort(byPotential);
+  second.sort(byPotential);
+  third.sort(byPotential);
+
+  return { first, second, third };
+}
+
+// Visual styling per podium place (1 = gold / 2 = silver / 3 = bronze).
+const POSITION_META: Record<number, {
+  label: string; ring: string; chip: string; text: string;
+}> = {
+  1: { label: 'Can still win', ring: 'ring-amber-400', chip: 'bg-amber-400 text-amber-950', text: 'text-amber-300' },
+  2: { label: 'Can reach 2nd', ring: 'ring-slate-300', chip: 'bg-slate-200 text-slate-800', text: 'text-slate-200' },
+  3: { label: 'Can reach 3rd', ring: 'ring-orange-500', chip: 'bg-orange-500 text-orange-950', text: 'text-orange-300' },
+};
+
+function RaceColumn({ place, entries }: { place: number; entries: RaceEntry[] }) {
+  const m = POSITION_META[place];
+  const shown = entries.slice(0, 6);
+  const more = entries.length - shown.length;
+
+  return (
+    <div className="flex-1 rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
+      <div className="mb-3 flex items-center gap-2">
+        <span className={clsx('flex h-7 w-7 items-center justify-center rounded-full text-sm font-black', m.chip)}>
+          {place}
+        </span>
+        <h3 className={clsx('text-sm font-bold', m.text)}>{m.label}</h3>
+        <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
+          {entries.length}
+        </span>
+      </div>
+
+      {entries.length === 0 ? (
+        <p className="text-xs text-slate-500">Out of reach.</p>
+      ) : (
+        <ul className="space-y-2">
+          {shown.map((e, i) => {
+            const name = e.user?.displayName || e.user?.username || '—';
+            const region = e.user?.regionDisplayName
+              || (e.user?.region ? REGION_DISPLAY_NAMES[e.user.region] : '');
+            return (
+              <li key={e.user?.id ?? i} className="flex items-center gap-2">
+                <div className={clsx(
+                  'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-white ring-2',
+                  m.ring,
+                )}>
+                  {name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-white" title={name}>{name}</p>
+                  {region && <p className="truncate text-[10px] text-slate-400">{region}</p>}
+                </div>
+                <span
+                  className={clsx('flex-shrink-0 text-xs font-bold', m.text)}
+                  title="Best-case final points"
+                >
+                  ↑{e.ceiling}
+                </span>
+              </li>
+            );
+          })}
+          {more > 0 && (
+            <li className="pt-1 text-[11px] text-slate-500">+{more} more</li>
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuthStore();
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
@@ -38,17 +142,21 @@ export default function Dashboard() {
   const [stats, setStats] = useState<LeaderboardEntry | null>(null);
   const [regionalRank, setRegionalRank] = useState<number | null>(null);
   const [topScorers, setTopScorers] = useState<TopScorer[]>([]);
+  const [standings, setStandings] = useState<LeaderboardEntry[]>([]);
+  const [remainingMatches, setRemainingMatches] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     // Run all requests independently — a single failure (e.g. /leaderboard/me) must NOT
     // hide upcoming matches or bonus predictions, which are fetched from separate endpoints.
-    const [matchesRes, predictionsRes, bonusRes, statsRes, scorersRes] = await Promise.allSettled([
+    const [matchesRes, predictionsRes, bonusRes, statsRes, scorersRes, globalRes, allMatchesRes] = await Promise.allSettled([
       matchApi.getUpcoming(),
       predictionApi.getMyPredictions(),
       predictionApi.getMyBonusPredictions(),
       leaderboardApi.getMyStats(),
       matchApi.getTopScorers(5),
+      leaderboardApi.getGlobal(),
+      matchApi.getAll(),
     ]);
 
     if (matchesRes.status === 'fulfilled') {
@@ -83,6 +191,23 @@ export default function Dashboard() {
       console.error('Failed to fetch top scorers:', scorersRes.reason);
     }
 
+    // Race for the win: full standings (all regions) + how many matches are still
+    // to be played, so we can project who can still reach 1st / 2nd / 3rd.
+    if (globalRes.status === 'fulfilled') {
+      setStandings(globalRes.value);
+    } else {
+      console.error('Failed to fetch global leaderboard:', globalRes.reason);
+    }
+
+    if (allMatchesRes.status === 'fulfilled') {
+      const left = allMatchesRes.value.filter(
+        m => m.status !== 'FINISHED' && m.status !== 'CANCELLED',
+      ).length;
+      setRemainingMatches(left);
+    } else {
+      console.error('Failed to fetch matches for race projection:', allMatchesRes.reason);
+    }
+
     // Fetch regional rank independently if user has a region
     if (user?.region) {
       try {
@@ -101,6 +226,10 @@ export default function Dashboard() {
 
   const bonusCount = bonusPredictions.length;
   const totalBonusTypes = 4;
+
+  const race = computeRace(standings, remainingMatches);
+  const raceHasContenders = race.first.length + race.second.length + race.third.length > 0;
+  const pointsToPlayFor = MAX_POINTS_PER_MATCH * remainingMatches;
 
   useEffect(() => {
     if (user) {
@@ -231,6 +360,48 @@ export default function Dashboard() {
             <div className="card text-center py-12 text-gray-500">
               <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <p>No upcoming matches at the moment</p>
+            </div>
+          )}
+
+          {/* Race for the Win — who can still reach 1st / 2nd / 3rd (all regions,
+              match points only) given the points still up for grabs */}
+          {remainingMatches > 0 && raceHasContenders && (
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 p-6 text-white shadow-xl ring-1 ring-white/10">
+              {/* Ambient glow */}
+              <div className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-amber-500/20 blur-3xl" />
+
+              <div className="relative mb-5 flex items-start justify-between">
+                <div>
+                  <h2 className="flex items-center text-lg font-bold">
+                    <Crown className="mr-2 h-5 w-5 text-amber-400" />
+                    Race for the Win
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Best-case finish if every remaining pick lands ·{' '}
+                    <span className="font-semibold text-amber-300">
+                      {remainingMatches} {remainingMatches === 1 ? 'match' : 'matches'} left
+                    </span>{' '}
+                    · up to {pointsToPlayFor} pts to play for
+                  </p>
+                </div>
+                <Link
+                  to="/leaderboard"
+                  className="flex flex-shrink-0 items-center text-xs font-medium text-amber-400 hover:text-amber-300"
+                >
+                  Full board
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <div className="relative flex flex-col gap-3 sm:flex-row">
+                <RaceColumn place={1} entries={race.first} />
+                <RaceColumn place={2} entries={race.second} />
+                <RaceColumn place={3} entries={race.third} />
+              </div>
+
+              <p className="relative mt-3 text-[11px] text-slate-500">
+                ↑ shows each player's best possible final total (match points only, bonuses excluded).
+              </p>
             </div>
           )}
         </div>
