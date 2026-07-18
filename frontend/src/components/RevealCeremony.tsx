@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { Crown, Trophy } from 'lucide-react';
 import { leaderboardApi } from '../services/api';
@@ -6,7 +7,8 @@ import { REGION_DISPLAY_NAMES, type LeaderboardEntry } from '../types';
 import { RESULTS_REVEAL_AT } from '../config/reveal';
 import Confetti from './Confetti';
 
-const SEEN_KEY = 'fifa_reveal_ceremony_v1';
+// The ceremony pops whenever the user lands on one of these routes (after reveal).
+const TRIGGER_ROUTES = ['/', '/leaderboard'];
 
 const SPOT_STYLE: Record<number, { pedestal: string; ring: string; badge: string; label: string; glow: string }> = {
   1: { pedestal: 'h-28 bg-gradient-to-t from-amber-500 to-yellow-300', ring: 'ring-amber-400', badge: 'bg-amber-400 text-amber-950', label: 'text-amber-300', glow: 'shadow-amber-500/40' },
@@ -53,38 +55,46 @@ function Spot({ entry, place, visible }: { entry: LeaderboardEntry; place: numbe
 }
 
 /**
- * One-time celebratory overlay shown to a user the first time they open the app
- * after the results reveal: confetti + a staged podium of the top 3 (match points).
+ * Celebratory overlay shown AFTER the results reveal every time the user opens
+ * the Dashboard or the Leaderboard: confetti + a staged top-3 podium. Dismiss to
+ * use the page; it re-appears the next time one of those links is pressed.
  */
 export default function RevealCeremony() {
+  const location = useLocation();
   const revealed = Date.now() >= RESULTS_REVEAL_AT.getTime();
-  const [seen, setSeen] = useState(() => localStorage.getItem(SEEN_KEY) === '1');
+  const onTriggerRoute = TRIGGER_ROUTES.includes(location.pathname);
+
+  const [visible, setVisible] = useState(false);
   const [podium, setPodium] = useState<LeaderboardEntry[] | null>(null);
   const [stage, setStage] = useState(0); // 0 none, 1 => 3rd, 2 => 2nd, 3 => 1st
 
+  // Re-open the ceremony each time we navigate onto a trigger route.
   useEffect(() => {
-    if (!revealed || seen) return;
+    setVisible(revealed && onTriggerRoute);
+  }, [location.pathname, revealed, onTriggerRoute]);
+
+  // (Re)load standings each time the ceremony opens, so the podium is fresh.
+  useEffect(() => {
+    if (!visible) return;
+    setStage(0);
+    setPodium(null);
     leaderboardApi.getGlobal()
       .then(list => setPodium([...list].sort((a, b) => b.matchPoints - a.matchPoints).slice(0, 3)))
       .catch(() => setPodium([]));
-  }, [revealed, seen]);
+  }, [visible, location.pathname]);
 
+  // Stagger the podium reveal 3rd -> 2nd -> 1st once the data lands.
   useEffect(() => {
-    if (!podium || podium.length === 0) return;
+    if (!visible || !podium || podium.length === 0) return;
     const timers = [
       setTimeout(() => setStage(1), 500),
       setTimeout(() => setStage(2), 1200),
       setTimeout(() => setStage(3), 1900),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [podium]);
+  }, [visible, podium]);
 
-  if (!revealed || seen || !podium || podium.length === 0) return null;
-
-  const dismiss = () => {
-    localStorage.setItem(SEEN_KEY, '1');
-    setSeen(true);
-  };
+  if (!visible || !podium || podium.length === 0) return null;
 
   return (
     <div className="fixed inset-0 z-[55] flex items-center justify-center bg-slate-950/90 px-4 backdrop-blur-sm">
@@ -104,7 +114,7 @@ export default function RevealCeremony() {
         </div>
 
         <button
-          onClick={dismiss}
+          onClick={() => setVisible(false)}
           className="mt-10 rounded-xl bg-amber-400 px-8 py-3 font-bold text-amber-950 shadow-lg transition-colors hover:bg-amber-300"
         >
           Enter the app
