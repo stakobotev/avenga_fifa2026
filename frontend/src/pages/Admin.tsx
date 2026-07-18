@@ -946,7 +946,9 @@ function TopScorerPanel() {
   const [scorers, setScorers] = useState<TopScorer[] | null>(null);
   const [selectedName, setSelectedName] = useState('');
   const [awarding, setAwarding] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [result, setResult] = useState<TopScorerAwardResult | null>(null);
+  const [resetInfo, setResetInfo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadScorers = async () => {
@@ -972,12 +974,13 @@ function TopScorerPanel() {
     const name = selectedName.trim();
     if (!name) return;
     if (!window.confirm(
-      `Award the Top Scorer bonus to "${name}"?\n\nThis settles the TOP_SCORER bonus for all users: matching picks get the points, the rest get zero. You can re-run with a different name to correct it.`
+      `Award the Top Scorer bonus to "${name}"?\n\nMatching picks get the points. This is ADDITIVE: points already awarded to another top scorer are NOT reset — use it when there is more than one top scorer (e.g. two players tied on goals). Use "Reset" to clear everything and start over.`
     )) {
       return;
     }
     setAwarding(true);
     setError(null);
+    setResetInfo(null);
     try {
       const res = await adminApi.awardTopScorer(name);
       setResult(res);
@@ -985,6 +988,25 @@ function TopScorerPanel() {
       setError('Failed to award the Top Scorer bonus.');
     } finally {
       setAwarding(false);
+    }
+  };
+
+  const reset = async () => {
+    if (!window.confirm(
+      'Reset the Top Scorer bonus?\n\nThis clears the awarded points and settled status for ALL TOP_SCORER predictions (users keep their picks), as if no top scorer had been selected.'
+    )) {
+      return;
+    }
+    setResetting(true);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await adminApi.resetTopScorer();
+      setResetInfo(`Reset ${res.reset} TOP_SCORER prediction${res.reset === 1 ? '' : 's'}.`);
+    } catch {
+      setError('Failed to reset the Top Scorer bonus.');
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -1000,18 +1022,31 @@ function TopScorerPanel() {
             </p>
           </div>
         </div>
-        <button
-          onClick={loadScorers}
-          disabled={loading}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center"
-        >
-          <RefreshCw className={clsx('h-4 w-4 mr-2', loading && 'animate-spin')} />
-          {loading ? 'Loading...' : scorers ? 'Refresh scorers' : 'Load current scorers'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={reset}
+            disabled={resetting}
+            className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 disabled:opacity-50 flex items-center"
+          >
+            <RotateCcw className={clsx('h-4 w-4 mr-2', resetting && 'animate-spin')} />
+            {resetting ? 'Resetting...' : 'Reset'}
+          </button>
+          <button
+            onClick={loadScorers}
+            disabled={loading}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center"
+          >
+            <RefreshCw className={clsx('h-4 w-4 mr-2', loading && 'animate-spin')} />
+            {loading ? 'Loading...' : scorers ? 'Refresh scorers' : 'Load current scorers'}
+          </button>
+        </div>
       </div>
 
       {error && (
         <div className="mt-3 text-sm text-yellow-700">{error}</div>
+      )}
+      {resetInfo && (
+        <div className="mt-3 text-sm text-gray-700 bg-gray-50 rounded p-3">{resetInfo}</div>
       )}
 
       {scorers && scorers.length > 0 && (
@@ -1078,7 +1113,9 @@ function TopScorerPanel() {
           </div>
           <p className="mt-2 text-xs text-gray-400">
             Name matching is accent- and case-insensitive but must otherwise match the
-            user's pick. Edit the box above if a user spelled it differently.
+            user's pick. Edit the box above if a user spelled it differently. Awarding is
+            additive — award each top scorer in turn (won't reset the others); use "Reset"
+            to clear all TOP_SCORER points and start over.
           </p>
 
           {result && (

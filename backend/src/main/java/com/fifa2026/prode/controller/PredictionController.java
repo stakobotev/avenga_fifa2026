@@ -80,6 +80,13 @@ public class PredictionController {
         return ResponseEntity.ok(predictionService.awardTopScorerBonus(playerName));
     }
 
+    @PostMapping("/bonus/reset-top-scorer")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> resetTopScorer() {
+        int reset = predictionService.resetTopScorerBonus();
+        return ResponseEntity.ok(Map.of("reset", reset));
+    }
+
     @PostMapping("/bonus/award-team")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BonusAwardResult> awardTeamBonus(@RequestBody Map<String, String> request) {

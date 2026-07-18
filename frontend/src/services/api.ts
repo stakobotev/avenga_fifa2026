@@ -441,6 +441,10 @@ export const adminApi = {
     const { data } = await api.post('/predictions/bonus/award-top-scorer', { playerName });
     return data;
   },
+  resetTopScorer: async (): Promise<{ reset: number }> => {
+    const { data } = await api.post('/predictions/bonus/reset-top-scorer');
+    return data;
+  },
   awardTeamBonus: async (predictionType: string, teamId: number): Promise<BonusAwardResult> => {
     const { data } = await api.post('/predictions/bonus/award-team', {
       predictionType,
