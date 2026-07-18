@@ -21,6 +21,9 @@ import UserPredictions from './pages/UserPredictions';
 import Statistics from './pages/Statistics';
 import MatchPredictionStats from './pages/MatchPredictionStats';
 import Help from './pages/Help';
+import ResultsCountdown from './pages/ResultsCountdown';
+import RevealCeremony from './components/RevealCeremony';
+import { useResultsLockdown } from './hooks/useResultsLockdown';
 
 const isDev = isDevMode();
 
@@ -83,6 +86,34 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Once the final match starts, regular users see only the results countdown —
+// no nav, no pages. Admins always get the full app.
+function LockdownLayout() {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN';
+  const { loading, active } = useResultsLockdown(isAdmin);
+
+  if (!isAdmin && loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400"></div>
+      </div>
+    );
+  }
+
+  if (active) {
+    return <ResultsCountdown />;
+  }
+
+  // Once results are open, greet everyone with a one-time podium celebration.
+  return (
+    <>
+      <RevealCeremony />
+      <Layout />
+    </>
+  );
+}
+
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const msalAuthenticated = useIsAuthenticated();
   const { inProgress } = useMsal();
@@ -133,7 +164,7 @@ export default function App() {
         <Route
           element={
             <ProtectedRoute>
-              <Layout />
+              <LockdownLayout />
             </ProtectedRoute>
           }
         >

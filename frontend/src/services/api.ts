@@ -450,4 +450,37 @@ export const adminApi = {
   },
 };
 
+// --- Results reveal (sealed-standings countdown) ---
+
+export interface RevealTeaser {
+  totalPlayers: number;
+  totalPredictions: number;
+  totalBonusPredictions: number;
+  matchesPlayed: number;
+  favoriteChampionCode?: string;
+  favoriteChampionName?: string;
+  favoriteChampionVotes: number;
+  favoriteTopScorer?: string;
+  favoriteTopScorerVotes: number;
+}
+
+export interface RevealEnvelope {
+  displayName: string;
+  region?: string;
+  predictionsMade: number;
+  bonusPredictionsMade: number;
+  exactScores: number;
+}
+
+export const revealApi = {
+  getTeaser: async (): Promise<RevealTeaser> => {
+    const { data } = await api.get('/reveal/teaser');
+    return data;
+  },
+  getMyEnvelope: async (): Promise<RevealEnvelope> => {
+    const { data } = await api.get('/reveal/me');
+    return data;
+  },
+};
+
 export default api;
