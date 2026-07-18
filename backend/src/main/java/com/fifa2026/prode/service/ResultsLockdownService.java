@@ -17,8 +17,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ResultsLockdownService {
 
-    // Standings are unsealed for everyone at 17:00 EEST (UTC+3) on 20 Jul 2026.
-    public static final Instant REVEAL_AT = Instant.parse("2026-07-20T14:00:00Z");
+    // Standings are unsealed for everyone at 17:00 EEST (UTC+3) on 21 Jul 2026.
+    public static final Instant REVEAL_AT = Instant.parse("2026-07-21T14:00:00Z");
 
     private final MatchRepository matchRepository;
 
