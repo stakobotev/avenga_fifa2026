@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import { matchApi, predictionApi, leaderboardApi, type TopScorer } from '../services/api';
 import type { Match, Prediction, LeaderboardEntry, BonusPrediction } from '../types';
 import { REGION_DISPLAY_NAMES } from '../types';
+import { RESULTS_REVEAL_AT } from '../config/reveal';
 import MatchCard from '../components/MatchCard';
 
 // Map FIFA 3-letter codes to ISO 2-letter codes for flag CDN
@@ -30,6 +31,49 @@ const getFlagUrl = (code: string): string => {
   const isoCode = FIFA_TO_ISO[code] || code.toLowerCase().slice(0, 2);
   return `https://flagcdn.com/24x18/${isoCode}.png`;
 };
+
+// --- Final podium (shown on the dashboard once results are revealed) ---
+
+const FINAL_PODIUM_STYLES: Record<number, {
+  pedestal: string; ring: string; badge: string; label: string; glow: string;
+}> = {
+  1: { pedestal: 'h-24 bg-gradient-to-t from-amber-500 to-yellow-300', ring: 'ring-amber-400', badge: 'bg-amber-400 text-amber-950', label: 'text-amber-300', glow: 'shadow-amber-500/40' },
+  2: { pedestal: 'h-16 bg-gradient-to-t from-slate-500 to-slate-300', ring: 'ring-slate-300', badge: 'bg-slate-200 text-slate-800', label: 'text-slate-200', glow: 'shadow-slate-400/30' },
+  3: { pedestal: 'h-11 bg-gradient-to-t from-orange-800 to-orange-500', ring: 'ring-orange-500', badge: 'bg-orange-500 text-orange-950', label: 'text-orange-300', glow: 'shadow-orange-600/30' },
+};
+
+function FinalPodiumSpot({ entry, place }: { entry: LeaderboardEntry; place: number }) {
+  const s = FINAL_PODIUM_STYLES[place];
+  const name = entry.user?.displayName || entry.user?.username || '—';
+  const region = entry.user?.regionDisplayName
+    || (entry.user?.region ? REGION_DISPLAY_NAMES[entry.user.region] : '');
+
+  return (
+    <div className="flex w-1/3 max-w-[8.5rem] flex-col items-center">
+      {place === 1
+        ? <Crown className="mb-1 h-5 w-5 text-amber-400 drop-shadow" />
+        : <div className="mb-1 h-5" />}
+
+      <div className={clsx('relative flex h-14 w-14 items-center justify-center rounded-full bg-slate-700 shadow-lg ring-2', s.ring, s.glow)}>
+        <span className="text-lg font-bold text-white">{name.charAt(0).toUpperCase()}</span>
+        <span className={clsx('absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-black shadow', s.badge)}>
+          {place}
+        </span>
+      </div>
+
+      <p className="mt-2 w-full truncate text-center text-sm font-semibold text-white" title={name}>{name}</p>
+      {region && <p className="w-full truncate text-center text-[10px] text-slate-400">{region}</p>}
+      <p className={clsx('mt-1 text-xl font-black leading-none', s.label)}>
+        {entry.totalPoints}
+        <span className="ml-1 text-[10px] font-medium text-slate-400">pts</span>
+      </p>
+
+      <div className={clsx('mt-2 flex w-full items-start justify-center rounded-t-lg pt-1.5 shadow-lg', s.pedestal, s.glow)}>
+        <span className="text-2xl font-black text-white/90 drop-shadow">{place}</span>
+      </div>
+    </div>
+  );
+}
 
 // Best possible points from a single unplayed match (exact score).
 const MAX_POINTS_PER_MATCH = 5;
@@ -231,6 +275,13 @@ export default function Dashboard() {
   const raceHasContenders = race.first.length + race.second.length + race.third.length > 0;
   const pointsToPlayFor = MAX_POINTS_PER_MATCH * remainingMatches;
 
+  // Once results are revealed the tournament is over, so the forward-looking race
+  // is replaced by the final top-3 podium.
+  const revealed = Date.now() >= RESULTS_REVEAL_AT.getTime();
+  const finalPodium = [...standings]
+    .sort((a, b) => b.totalPoints - a.totalPoints)
+    .slice(0, 3);
+
   useEffect(() => {
     if (user) {
       fetchData();
@@ -334,38 +385,75 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Upcoming Matches */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Upcoming Matches</h2>
-            <Link
-              to="/matches"
-              className="flex items-center text-avenga-red hover:text-primary-700 font-medium"
-            >
-              View all
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Link>
-          </div>
+          {/* Matches are irrelevant once the tournament is over / results revealed */}
+          {!revealed && (
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Upcoming Matches</h2>
+                <Link
+                  to="/matches"
+                  className="flex items-center text-avenga-red hover:text-primary-700 font-medium"
+                >
+                  View all
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Link>
+              </div>
 
-          {upcomingMatches.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {upcomingMatches.map(match => (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  prediction={predictions.get(match.id)}
-                  onPredictionSaved={fetchData}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="card text-center py-12 text-gray-500">
-              <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No upcoming matches at the moment</p>
+              {upcomingMatches.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {upcomingMatches.map(match => (
+                    <MatchCard
+                      key={match.id}
+                      match={match}
+                      prediction={predictions.get(match.id)}
+                      onPredictionSaved={fetchData}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="card text-center py-12 text-gray-500">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No upcoming matches at the moment</p>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Final Podium — shown once results are revealed (no more matches) */}
+          {revealed && finalPodium.length > 0 && (
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 p-6 text-white shadow-xl ring-1 ring-white/10">
+              <div className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-amber-500/20 blur-3xl" />
+
+              <div className="relative mb-6 flex items-start justify-between">
+                <div>
+                  <h2 className="flex items-center text-lg font-bold">
+                    <Trophy className="mr-2 h-5 w-5 text-amber-400" />
+                    Final Podium
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-400">
+                    The tournament is over — your champions, by total points (matches + bonus)
+                  </p>
+                </div>
+                <Link
+                  to="/leaderboard"
+                  className="flex flex-shrink-0 items-center text-xs font-medium text-amber-400 hover:text-amber-300"
+                >
+                  Full board
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <div className="relative flex items-end justify-center gap-3 sm:gap-6">
+                {finalPodium[1] && <FinalPodiumSpot entry={finalPodium[1]} place={2} />}
+                <FinalPodiumSpot entry={finalPodium[0]} place={1} />
+                {finalPodium[2] && <FinalPodiumSpot entry={finalPodium[2]} place={3} />}
+              </div>
             </div>
           )}
 
           {/* Race for the Win — who can still reach 1st / 2nd / 3rd (all regions,
               match points only) given the points still up for grabs */}
-          {remainingMatches > 0 && raceHasContenders && (
+          {!revealed && remainingMatches > 0 && raceHasContenders && (
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 p-6 text-white shadow-xl ring-1 ring-white/10">
               {/* Ambient glow */}
               <div className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-amber-500/20 blur-3xl" />

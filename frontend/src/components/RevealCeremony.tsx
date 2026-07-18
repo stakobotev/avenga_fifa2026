@@ -8,7 +8,8 @@ import { RESULTS_REVEAL_AT } from '../config/reveal';
 import Confetti from './Confetti';
 
 // The ceremony pops whenever the user lands on one of these routes (after reveal).
-const TRIGGER_ROUTES = ['/', '/leaderboard'];
+// The Dashboard shows the top 3 as a static card instead, so it's not listed here.
+const TRIGGER_ROUTES = ['/leaderboard'];
 
 const SPOT_STYLE: Record<number, { pedestal: string; ring: string; badge: string; label: string; glow: string }> = {
   1: { pedestal: 'h-28 bg-gradient-to-t from-amber-500 to-yellow-300', ring: 'ring-amber-400', badge: 'bg-amber-400 text-amber-950', label: 'text-amber-300', glow: 'shadow-amber-500/40' },
@@ -43,7 +44,7 @@ function Spot({ entry, place, visible }: { entry: LeaderboardEntry; place: numbe
       <p className="mt-2 w-full truncate text-center text-sm font-semibold text-white" title={name}>{name}</p>
       {region && <p className="w-full truncate text-center text-[10px] text-slate-400">{region}</p>}
       <p className={clsx('mt-1 text-xl font-black leading-none', s.label)}>
-        {entry.matchPoints}
+        {entry.totalPoints}
         <span className="ml-1 text-[10px] font-medium text-slate-400">pts</span>
       </p>
 
@@ -79,7 +80,7 @@ export default function RevealCeremony() {
     setStage(0);
     setPodium(null);
     leaderboardApi.getGlobal()
-      .then(list => setPodium([...list].sort((a, b) => b.matchPoints - a.matchPoints).slice(0, 3)))
+      .then(list => setPodium([...list].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 3)))
       .catch(() => setPodium([]));
   }, [visible, location.pathname]);
 
