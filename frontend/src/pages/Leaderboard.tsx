@@ -167,6 +167,7 @@ export default function Leaderboard() {
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Player</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Region</th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Points</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Bonus</th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Exact</th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Correct</th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Predictions</th>
@@ -225,6 +226,9 @@ export default function Leaderboard() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="font-bold text-lg text-gray-900">{entry.totalPoints}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-amber-600 font-medium">{entry.bonusPoints}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="text-green-600 font-medium">{entry.exactScores}</span>
