@@ -32,6 +32,9 @@ public class StatisticsOverviewDTO {
     private List<TeamStat> runnerUp;
     private List<TeamStat> thirdPlace;
 
+    // --- Actual bonus outcomes (final results, with how many players nailed each) ---
+    private List<BonusResult> bonusResults;
+
     // --- Regional breakdown (over finished matches) ---
     private List<RegionStat> regions;
     private RegionStat regionsTotal;
@@ -73,6 +76,31 @@ public class StatisticsOverviewDTO {
         private long exactScore;
         private long onlyWinner;
         private double sharePct;           // share of grand-total predictions
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class BonusResult {
+        private String type;               // CHAMPION, RUNNER_UP, THIRD_PLACE, TOP_SCORER
+        private String label;              // "Champion", "Top Scorer", ...
+        private List<BonusWinner> winners; // the actual winner(s); may be several (e.g. tied top scorers)
+        private long correct;              // how many players predicted it right
+        private long totalPicks;           // how many players made this pick
+        private double pct;                // correct / totalPicks
+        private int pointsEach;            // points a correct pick earned
+        private boolean settled;           // whether the outcome is known
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class BonusWinner {
+        private String name;      // team name or player name
+        private String code;      // team code for the flag (null for a player)
+        private String flagUrl;
     }
 
     @Data

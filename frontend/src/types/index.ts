@@ -170,6 +170,23 @@ export interface StatMatch {
   correctWinnerPct: number;
 }
 
+export interface BonusWinner {
+  name: string;
+  code?: string;
+  flagUrl?: string;
+}
+
+export interface BonusResult {
+  type: 'CHAMPION' | 'RUNNER_UP' | 'THIRD_PLACE' | 'TOP_SCORER';
+  label: string;
+  winners: BonusWinner[];
+  correct: number;
+  totalPicks: number;
+  pct: number;
+  pointsEach: number;
+  settled: boolean;
+}
+
 export interface StatisticsOverview {
   totalUsers: number;
   totalPredictions: number;
@@ -179,6 +196,7 @@ export interface StatisticsOverview {
   champion: StatTeam[];
   runnerUp: StatTeam[];
   thirdPlace: StatTeam[];
+  bonusResults: BonusResult[];
   regions: StatRegion[];
   regionsTotal: StatRegion;
   matches: StatMatch[];

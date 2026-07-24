@@ -31,6 +31,7 @@ public class StatisticsService {
     private final PredictionRepository predictionRepository;
     private final BonusPredictionRepository bonusPredictionRepository;
     private final MatchRepository matchRepository;
+    private final ScoringService scoringService;
 
     @Transactional(readOnly = true)
     public StatisticsOverviewDTO getOverview() {
@@ -45,6 +46,7 @@ public class StatisticsService {
                 .champion(teamStats(BonusPrediction.BonusType.CHAMPION))
                 .runnerUp(teamStats(BonusPrediction.BonusType.RUNNER_UP))
                 .thirdPlace(teamStats(BonusPrediction.BonusType.THIRD_PLACE))
+                .bonusResults(bonusResults())
                 .regions(regionStats(predictions))
                 .regionsTotal(regionTotal(predictions))
                 .matches(matchAccuracy(predictions))
@@ -115,6 +117,102 @@ public class StatisticsService {
         result.sort(Comparator.comparingLong(TeamStat::getCount).reversed()
                 .thenComparing(TeamStat::getName));
         return result;
+    }
+
+    // --- Actual bonus outcomes (final results) ---
+
+    private List<BonusResult> bonusResults() {
+        Team champion = null, runnerUp = null, third = null;
+
+        Match finalMatch = lastByStage(Match.Stage.FINAL);
+        if (finalMatch != null && finalMatch.getWinnerTeam() != null) {
+            champion = finalMatch.getWinnerTeam();
+            runnerUp = otherTeam(finalMatch, champion);
+        }
+        Match thirdMatch = lastByStage(Match.Stage.THIRD_PLACE);
+        if (thirdMatch != null && thirdMatch.getWinnerTeam() != null) {
+            third = thirdMatch.getWinnerTeam();
+        }
+
+        List<BonusResult> out = new ArrayList<>();
+        out.add(teamBonusResult(BonusPrediction.BonusType.CHAMPION, "Champion", champion));
+        out.add(teamBonusResult(BonusPrediction.BonusType.RUNNER_UP, "Runner-up", runnerUp));
+        out.add(teamBonusResult(BonusPrediction.BonusType.THIRD_PLACE, "Third Place", third));
+        out.add(topScorerBonusResult());
+        return out;
+    }
+
+    private Match lastByStage(Match.Stage stage) {
+        List<Match> ms = matchRepository.findByStageOrderByMatchDateAsc(stage);
+        return ms.isEmpty() ? null : ms.get(ms.size() - 1);
+    }
+
+    private Team otherTeam(Match m, Team team) {
+        if (m.getHomeTeam() != null && team != null && m.getHomeTeam().getId().equals(team.getId())) {
+            return m.getAwayTeam();
+        }
+        return m.getHomeTeam();
+    }
+
+    private BonusResult teamBonusResult(BonusPrediction.BonusType type, String label, Team actual) {
+        List<BonusPrediction> picks = bonusPredictionRepository.findByPredictionType(type);
+        long total = picks.size();
+        long correct = 0;
+        if (actual != null) {
+            for (BonusPrediction bp : picks) {
+                if (bp.getSelectedTeam() != null && bp.getSelectedTeam().getId().equals(actual.getId())) {
+                    correct++;
+                }
+            }
+        }
+        List<BonusWinner> winners = new ArrayList<>();
+        if (actual != null) {
+            winners.add(BonusWinner.builder()
+                    .name(actual.getName())
+                    .code(actual.getCode())
+                    .flagUrl(actual.getFlagUrl())
+                    .build());
+        }
+        return BonusResult.builder()
+                .type(type.name())
+                .label(label)
+                .winners(winners)
+                .correct(correct)
+                .totalPicks(total)
+                .pct(pct(correct, total))
+                .pointsEach(scoringService.calculateBonusPoints(type))
+                .settled(actual != null)
+                .build();
+    }
+
+    private BonusResult topScorerBonusResult() {
+        BonusPrediction.BonusType type = BonusPrediction.BonusType.TOP_SCORER;
+        List<BonusPrediction> picks = bonusPredictionRepository.findByPredictionType(type);
+        long total = picks.size();
+        long correct = 0;
+        // The actual top scorer(s) are whoever's picks were awarded points.
+        Map<String, BonusWinner> winners = new LinkedHashMap<>();
+        for (BonusPrediction bp : picks) {
+            Integer pts = bp.getPointsEarned();
+            if (pts != null && pts > 0) {
+                correct++;
+                String name = bp.getSelectedPlayerName();
+                if (name != null && !name.isBlank()) {
+                    winners.putIfAbsent(name.trim().toLowerCase(),
+                            BonusWinner.builder().name(name.trim()).build());
+                }
+            }
+        }
+        return BonusResult.builder()
+                .type(type.name())
+                .label("Top Scorer")
+                .winners(new ArrayList<>(winners.values()))
+                .correct(correct)
+                .totalPicks(total)
+                .pct(pct(correct, total))
+                .pointsEach(scoringService.calculateBonusPoints(type))
+                .settled(!winners.isEmpty())
+                .build();
     }
 
     // --- Regional breakdown ---

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Users, ClipboardList, Target, UserCheck, Star, Trophy, Globe,
+  Users, ClipboardList, Target, UserCheck, Star, Trophy, Globe, Crown, Medal, Award,
 } from 'lucide-react';
 import clsx from 'clsx';
-import type { StatisticsOverview, StatTeam } from '../types';
+import type { StatisticsOverview, BonusResult } from '../types';
 import { statisticsApi } from '../services/api';
 import { getFlagUrl } from '../utils/flags';
 
@@ -42,47 +42,59 @@ function KpiCard({
   );
 }
 
-function TeamColumn({
-  rank, title, accent, teams,
-}: {
-  rank: number; title: string; accent: string; teams: StatTeam[];
-}) {
-  const max = teams.length ? teams[0].count : 0;
-  const leaders = teams.filter(t => t.count === max && max > 0);
-  const tie = leaders.length > 1;
+const BONUS_META: Record<BonusResult['type'], {
+  icon: typeof Crown; ring: string; chip: string; bar: string; text: string;
+}> = {
+  CHAMPION:    { icon: Crown, ring: 'ring-amber-400/40',  chip: 'bg-amber-400 text-amber-950',   bar: 'bg-amber-400',  text: 'text-amber-300' },
+  RUNNER_UP:   { icon: Medal, ring: 'ring-slate-300/40',  chip: 'bg-slate-200 text-slate-800',   bar: 'bg-slate-300',  text: 'text-slate-200' },
+  THIRD_PLACE: { icon: Award, ring: 'ring-orange-500/40', chip: 'bg-orange-500 text-orange-950', bar: 'bg-orange-400', text: 'text-orange-300' },
+  TOP_SCORER:  { icon: Star,  ring: 'ring-sky-400/40',    chip: 'bg-sky-400 text-sky-950',       bar: 'bg-sky-400',    text: 'text-sky-300' },
+};
+
+function BonusResultCard({ result }: { result: BonusResult }) {
+  const m = BONUS_META[result.type];
+  const Icon = m.icon;
 
   return (
-    <div className="flex flex-col">
-      <div className="mb-3 flex items-center gap-2">
-        <span className={clsx(
-          'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-black',
-          accent,
-        )}>
-          {rank}
-        </span>
-        <h4 className="text-sm font-bold uppercase tracking-wide text-gray-200">{title}</h4>
-      </div>
-
-      <div className="space-y-1.5">
-        {teams.length === 0 && (
-          <p className="text-sm text-gray-500">No picks yet</p>
-        )}
-        {teams.map(team => (
-          <div key={team.code} className="flex items-center gap-2 text-sm">
-            <Flag code={team.code} className="h-4 w-6" />
-            <span className="flex-1 truncate text-gray-200">{team.name}</span>
-            <span className="font-semibold text-gray-100">{team.count}</span>
-            <span className="w-12 text-right text-xs text-gray-400">{team.pct.toFixed(1)}%</span>
-          </div>
-        ))}
-      </div>
-
-      {tie && (
-        <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300">
-          <Star className="h-3.5 w-3.5 text-amber-400" />
-          <span>{leaders.map(l => l.name).join(' and ')} tied for {title.toLowerCase()}</span>
+    <div className={clsx('flex flex-col rounded-xl border border-white/10 bg-white/5 p-5 ring-1', m.ring)}>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon className={clsx('h-5 w-5', m.text)} />
+          <h4 className="text-sm font-bold uppercase tracking-wide text-gray-100">{result.label}</h4>
         </div>
+        <span className={clsx('rounded-full px-2 py-0.5 text-[10px] font-bold', m.chip)}>
+          +{result.pointsEach} pts
+        </span>
+      </div>
+
+      {/* Actual winner(s) */}
+      {result.settled && result.winners.length > 0 ? (
+        <div className="mb-5 space-y-1.5">
+          {result.winners.map((w, i) => (
+            <div key={i} className="flex items-center gap-2">
+              {w.code
+                ? <Flag code={w.code} className="h-5 w-7" />
+                : <Star className={clsx('h-4 w-4 flex-shrink-0', m.text)} />}
+              <span className="truncate text-lg font-extrabold text-white" title={w.name}>{w.name}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mb-5 text-sm text-gray-500">Not settled yet</p>
       )}
+
+      {/* Hit rate */}
+      <div className="mt-auto">
+        <div className="mb-1 flex items-center justify-between text-xs">
+          <span className="text-gray-400">Predicted correctly</span>
+          <span className={clsx('font-bold', m.text)}>
+            {result.correct}/{result.totalPicks} · {result.pct.toFixed(1)}%
+          </span>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
+          <div className={clsx('h-full rounded-full', m.bar)} style={{ width: `${Math.min(100, result.pct)}%` }} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -124,7 +136,6 @@ export default function Statistics() {
     );
   }
 
-  const maxTopScorer = stats.topScorers.length ? stats.topScorers[0].count : 0;
   const hasFinishedMatches = stats.totalPredictions > 0;
 
   return (
@@ -135,7 +146,7 @@ export default function Statistics() {
           World Cup Predictions Overview
         </h1>
         <p className="mt-2 text-sm text-amber-300/90">
-          Top scorer picks, podium predictions, regional results and match accuracy — for played matches only
+          Final bonus results, regional performance and match accuracy — how the tournament actually played out
         </p>
       </header>
 
@@ -147,50 +158,19 @@ export default function Statistics() {
         <KpiCard icon={UserCheck} value={stats.onlyWinner} label="Only Winner" accent="text-sky-400" />
       </div>
 
-      {/* Top scorer + Podium */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Top scorer */}
-        <section className="rounded-xl border border-white/10 bg-white/5 p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <Star className="h-5 w-5 text-sky-400" />
-            <h3 className="text-base font-bold uppercase tracking-wide text-gray-100">Top Scorer Predictions</h3>
-          </div>
-
-          {stats.topScorers.length === 0 ? (
-            <p className="text-sm text-gray-500">No top scorer picks yet</p>
-          ) : (
-            <ol className="space-y-2">
-              {stats.topScorers.map((p, i) => (
-                <li key={p.name} className="flex items-center gap-3 text-sm">
-                  <span className="w-4 text-right text-xs font-semibold text-gray-500">{i + 1}</span>
-                  <span className="w-32 flex-shrink-0 truncate text-gray-200" title={p.name}>{p.name}</span>
-                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/5">
-                    <div
-                      className="h-full rounded-full bg-sky-500"
-                      style={{ width: maxTopScorer ? `${(p.count / maxTopScorer) * 100}%` : '0%' }}
-                    />
-                  </div>
-                  <span className="w-8 text-right font-semibold text-gray-100">{p.count}</span>
-                  <span className="w-12 text-right text-xs text-gray-400">{p.pct.toFixed(1)}%</span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </section>
-
-        {/* Podium */}
-        <section className="rounded-xl border border-white/10 bg-white/5 p-5 lg:col-span-2">
-          <div className="mb-4 flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-amber-400" />
-            <h3 className="text-base font-bold uppercase tracking-wide text-gray-100">Podium Predictions</h3>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-3">
-            <TeamColumn rank={1} title="Champion" accent="bg-amber-400" teams={stats.champion} />
-            <TeamColumn rank={2} title="Runner-up" accent="bg-gray-300" teams={stats.runnerUp} />
-            <TeamColumn rank={3} title="Third Place" accent="bg-amber-600" teams={stats.thirdPlace} />
-          </div>
-        </section>
-      </div>
+      {/* Bonus results — how the tournament actually ended, and who called it */}
+      <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-amber-400" />
+          <h3 className="text-base font-bold uppercase tracking-wide text-gray-100">Bonus Results</h3>
+          <span className="ml-1 text-xs text-gray-400">the real podium & top scorer — and how many players nailed each</span>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.bonusResults?.map(r => (
+            <BonusResultCard key={r.type} result={r} />
+          ))}
+        </div>
+      </section>
 
       {/* Regional performance */}
       <section className="rounded-xl border border-white/10 bg-white/5 p-5">
